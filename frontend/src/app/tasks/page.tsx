@@ -1,34 +1,62 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Task, TaskFilters, TaskStatus, TaskPriority, User, Project } from '@/types';
-import apiClient from '@/lib/api';
-import { formatDate, enumToDisplayText, getPriorityColor, getStatusColor } from '@/lib/utils';
-import { toast } from 'react-hot-toast';
-import { Plus, Search, Filter, Edit, Trash2, Users, Calendar, Clock, AlertCircle } from 'lucide-react';
-import AppLayout from '@/components/AppLayout';
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import {
+  Task,
+  TaskFilters,
+  TaskStatus,
+  TaskPriority,
+  Project,
+} from "@/types";
+import apiClient from "@/lib/api";
+import {
+  formatDate,
+  enumToDisplayText,
+  getPriorityColor,
+  getStatusColor,
+} from "@/lib/utils";
+import { toast } from "react-hot-toast";
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Calendar,
+  Clock,
+  AlertCircle,
+  MoreVertical,
+  ChevronDown,
+  X,
+  LayoutGrid,
+  List,
+  SortAsc,
+  RefreshCw,
+} from "lucide-react";
+import AppLayout from "@/components/AppLayout";
 
 export default function TasksPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [projectFilter, setProjectFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [projectFilter, setProjectFilter] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace('/login');
+      router.replace("/login");
       return;
     }
-
     if (user) {
       loadTasks();
       loadProjects();
@@ -45,12 +73,12 @@ export default function TasksPage() {
       if (projectFilter) filters.projectId = projectFilter;
 
       const response = await apiClient.getTasks(filters);
-      if (response.success && response.data) {
-        setTasks(response.data.items);
-      }
+      if (response.success && response.data) setTasks(response.data.items || []);
+      else setTasks([]);
     } catch (error) {
-      console.error('Failed to load tasks:', error);
-      toast.error('Failed to load tasks');
+      console.error(error);
+      toast.error("Failed to load tasks");
+      setTasks([]);
     } finally {
       setLoading(false);
     }
@@ -59,375 +87,687 @@ export default function TasksPage() {
   const loadProjects = async () => {
     try {
       const response = await apiClient.getProjects({});
-      if (response.success && response.data) {
-        setProjects(response.data.items);
-      }
+      if (response.success && response.data) setProjects(response.data.items || []);
+      else setProjects([]);
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      console.error(error);
+      setProjects([]);
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-      return;
-    }
-
+    if (!confirm("Are you sure you want to delete this task?")) return;
     try {
       await apiClient.deleteTask(taskId);
-      toast.success('Task deleted successfully');
+      toast.success("Task deleted successfully");
       loadTasks();
     } catch (error) {
-      console.error('Failed to delete task:', error);
-      toast.error('Failed to delete task');
+      console.error(error);
+      toast.error("Failed to delete task");
     }
   };
 
   const updateTaskStatus = async (taskId: string, newStatus: TaskStatus) => {
     try {
       await apiClient.updateTask(taskId, { status: newStatus });
-      toast.success('Task status updated');
+      toast.success("Task status updated");
       loadTasks();
     } catch (error) {
-      console.error('Failed to update task status:', error);
-      toast.error('Failed to update task status');
+      console.error(error);
+      toast.error("Failed to update task status");
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || task.status === statusFilter;
     const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-    const matchesProject = !projectFilter || (typeof task.projectId === 'object' ? task.projectId._id === projectFilter : task.projectId === projectFilter);
-    
+    const matchesProject =
+      !projectFilter ||
+      (typeof task.projectId === "object"
+        ? task.projectId._id === projectFilter
+        : task.projectId === projectFilter);
     return matchesSearch && matchesStatus && matchesPriority && matchesProject;
   });
 
-  const isOverdue = (dueDate: string) => {
-    return new Date(dueDate) < new Date() && !['completed', 'cancelled'].includes(statusFilter);
+  const isOverdue = (dueDate: string) =>
+    new Date(dueDate) < new Date() && !["completed", "cancelled"].includes(statusFilter);
+
+  const activeFiltersCount = [statusFilter, priorityFilter, projectFilter].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setStatusFilter("");
+    setPriorityFilter("");
+    setProjectFilter("");
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loading)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-10 w-10 border-3 border-blue-600 border-t-transparent"></div>
+          <p className="text-sm text-gray-600 font-medium">Loading tasks...</p>
+        </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const kanbanColumns = [
-    { status: 'todo', title: 'To Do', color: 'bg-gray-100' },
-    { status: 'in_progress', title: 'In Progress', color: 'bg-blue-100' },
-    { status: 'review', title: 'In Review', color: 'bg-yellow-100' },
-    { status: 'testing', title: 'Testing', color: 'bg-purple-100' },
-    { status: 'completed', title: 'Completed', color: 'bg-green-100' },
-    { status: 'blocked', title: 'Blocked', color: 'bg-red-100' },
+    { status: "todo", title: "To Do", color: "bg-slate-50 border-slate-200", count: 0 },
+    { status: "in_progress", title: "In Progress", color: "bg-blue-50 border-blue-200", count: 0 },
+    { status: "review", title: "In Review", color: "bg-amber-50 border-amber-200", count: 0 },
+    { status: "testing", title: "Testing", color: "bg-purple-50 border-purple-200", count: 0 },
+    { status: "completed", title: "Completed", color: "bg-emerald-50 border-emerald-200", count: 0 },
+    { status: "blocked", title: "Blocked", color: "bg-rose-50 border-rose-200", count: 0 },
   ];
+
+  const getTaskStats = () => {
+    const stats = {
+      total: filteredTasks.length,
+      completed: filteredTasks.filter(t => t.status === "completed").length,
+      inProgress: filteredTasks.filter(t => t.status === "in_progress").length,
+      overdue: filteredTasks.filter(t => isOverdue(t.dueDate)).length,
+    };
+    return stats;
+  };
+
+  const stats = getTaskStats();
 
   return (
     <AppLayout>
-      <div className="bg-gray-50">
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-                <p className="text-sm text-gray-600">Manage your tasks and track progress</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
-                    }`}
-                  >
-                    List
-                  </button>
-                  <button
-                    onClick={() => setViewMode('kanban')}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
-                    }`}
-                  >
-                    Kanban
-                  </button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Modern Header with Stats */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Tasks</h1>
+                  <p className="text-sm text-gray-500 mt-1">Manage and track your team's work</p>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md font-medium"
                 >
                   <Plus className="w-4 h-4" />
                   <span>New Task</span>
                 </button>
               </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                  <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Total Tasks</div>
+                  <div className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</div>
+                </div>
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-3 border border-emerald-200">
+                  <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Completed</div>
+                  <div className="text-2xl font-bold text-emerald-900 mt-1">{stats.completed}</div>
+                </div>
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-3 border border-amber-200">
+                  <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">In Progress</div>
+                  <div className="text-2xl font-bold text-amber-900 mt-1">{stats.inProgress}</div>
+                </div>
+                <div className="bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg p-3 border border-rose-200">
+                  <div className="text-xs font-medium text-rose-700 uppercase tracking-wide">Overdue</div>
+                  <div className="text-2xl font-bold text-rose-900 mt-1">{stats.overdue}</div>
+                </div>
+              </div>
             </div>
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        {/* Enhanced Toolbar */}
+        <main className="max-w-7xl mx-auto px-6 py-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search tasks..."
+                  placeholder="Search tasks by title or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+                  className="pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full text-sm transition-all"
                 />
               </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Status</option>
-                <option value="todo">To Do</option>
-                <option value="in_progress">In Progress</option>
-                <option value="review">In Review</option>
-                <option value="testing">Testing</option>
-                <option value="completed">Completed</option>
-                <option value="blocked">Blocked</option>
-              </select>
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Priority</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-              <select
-                value={projectFilter}
-                onChange={(e) => setProjectFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Projects</option>
-                {projects.map((project) => (
-                  <option key={project._id} value={project._id}>
-                    {project.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={loadTasks}
-              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              <Filter className="w-4 h-4" />
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
 
-        {/* Tasks View */}
-        {viewMode === 'list' ? (
-          // List View
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            {filteredTasks.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
-                <p className="text-gray-600 mb-6">
-                  No tasks match your current filters or you haven't created any tasks yet.
-                </p>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${
+                    showFilters || activeFiltersCount > 0
+                      ? "bg-blue-50 border-blue-300 text-blue-700"
+                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
                 >
-                  Create Task
+                  <Filter className="w-4 h-4" />
+                  <span>Filters</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
+
+                <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
+                      viewMode === "list"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <List className="w-4 h-4" />
+                    <span>List</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode("kanban")}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
+                      viewMode === "kanban"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    <span>Board</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={loadTasks}
+                  className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-300 rounded-lg transition-all"
+                  title="Refresh"
+                >
+                  <RefreshCw className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {filteredTasks.map((task) => (
-                  <div key={task._id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-                          {isOverdue(task.dueDate) && (
-                            <AlertCircle className="w-5 h-5 text-red-500" />
-                          )}
-                        </div>
-                        <p className="text-gray-600 mb-3">{task.description}</p>
-                        
-                        <div className="flex flex-wrap items-center gap-3 mb-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                            {enumToDisplayText(task.status)}
-                          </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                            {enumToDisplayText(task.priority)}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            Project: {typeof task.projectId === 'object' ? task.projectId.title : 'Unknown'}
-                          </span>
-                        </div>
+            </div>
 
-                        <div className="flex items-center space-x-6 text-sm text-gray-600">
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="w-4 h-4" />
-                            <span className={isOverdue(task.dueDate) ? 'text-red-600 font-medium' : ''}>
-                              Due: {formatDate(task.dueDate)}
-                            </span>
-                          </div>
-                          {task.assignedTo && (
-                            <div className="flex items-center space-x-1">
-                              <Users className="w-4 h-4" />
-                              <span>
-                                {typeof task.assignedTo === 'object' 
-                                  ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}`
-                                  : 'Assigned'}
-                              </span>
-                            </div>
-                          )}
-                          {task.estimatedHours && (
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-4 h-4" />
-                              <span>{task.estimatedHours}h estimated</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 ml-4">
-                        <select
-                          value={task.status}
-                          onChange={(e) => updateTaskStatus(task._id, e.target.value as TaskStatus)}
-                          className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="todo">To Do</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="review">In Review</option>
-                          <option value="testing">Testing</option>
-                          <option value="completed">Completed</option>
-                          <option value="blocked">Blocked</option>
-                        </select>
-                        <button
-                          onClick={() => router.push(`/tasks/${task._id}` as any)}
-                          className="p-1 text-gray-400 hover:text-blue-600"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTask(task._id)}
-                          className="p-1 text-gray-400 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {/* Filter Dropdowns */}
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex flex-wrap gap-3">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                  >
+                    <option value="">All Status</option>
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="review">In Review</option>
+                    <option value="testing">Testing</option>
+                    <option value="completed">Completed</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
+
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                  >
+                    <option value="">All Priority</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+
+                  <select
+                    value={projectFilter}
+                    onChange={(e) => setProjectFilter(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                  >
+                    <option value="">All Projects</option>
+                    {(projects || []).map((project) => (
+                      <option key={project._id} value={project._id}>
+                        {project.title}
+                      </option>
+                    ))}
+                  </select>
+
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={clearFilters}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>Clear filters</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
-        ) : (
-          // Kanban View
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 overflow-x-auto">
-            {kanbanColumns.map((column) => {
-              const columnTasks = filteredTasks.filter(task => task.status === column.status);
-              
-              return (
-                <div key={column.status} className="min-w-80 lg:min-w-0">
-                  <div className={`${column.color} rounded-lg p-4 mb-4`}>
-                    <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                    <span className="text-sm text-gray-600">({columnTasks.length})</span>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {columnTasks.map((task) => (
-                      <div key={task._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer">
-                        <h4 className="font-medium text-gray-900 mb-2">{task.title}</h4>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                        
-                        <div className="flex items-center justify-between mb-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                            {enumToDisplayText(task.priority)}
-                          </span>
-                          {isOverdue(task.dueDate) && (
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                          )}
-                        </div>
-                        
-                        <div className="text-xs text-gray-500">
-                          <div className={isOverdue(task.dueDate) ? 'text-red-600 font-medium' : ''}>
-                            Due: {formatDate(task.dueDate)}
-                          </div>
-                          {task.assignedTo && typeof task.assignedTo === 'object' && (
-                            <div className="mt-1">
-                              Assigned: {task.assignedTo.firstName} {task.assignedTo.lastName}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
 
-      {/* Create Task Modal */}
-      {showCreateModal && (
-        <CreateTaskModal 
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            loadTasks();
-          }}
-          projects={projects}
-        />
-      )}
+          {/* Tasks View */}
+          {viewMode === "list" ? (
+            <TaskListView
+              tasks={filteredTasks}
+              isOverdue={isOverdue}
+              updateTaskStatus={updateTaskStatus}
+              handleDeleteTask={handleDeleteTask}
+              router={router}
+              setShowCreateModal={setShowCreateModal}
+            />
+          ) : (
+            <KanbanView
+              columns={kanbanColumns}
+              tasks={filteredTasks}
+              isOverdue={isOverdue}
+              updateTaskStatus={updateTaskStatus}
+              router={router}
+            />
+          )}
+        </main>
+
+        {/* Create Task Modal */}
+        {showCreateModal && (
+          <CreateTaskModal
+            onClose={() => setShowCreateModal(false)}
+            onSuccess={() => {
+              setShowCreateModal(false);
+              loadTasks();
+            }}
+            projects={projects}
+          />
+        )}
       </div>
     </AppLayout>
   );
 }
 
-// Placeholder for CreateTaskModal component
-function CreateTaskModal({ 
-  onClose, 
-  onSuccess, 
-  projects 
-}: { 
-  onClose: () => void; 
-  onSuccess: () => void;
-  projects: Project[];
-}) {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-lg font-semibold mb-4">Create New Task</h2>
-        <p className="text-gray-600 mb-4">Task creation modal will be implemented next.</p>
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onSuccess}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Create
-          </button>
+// Enhanced Task List View
+function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, router, setShowCreateModal }: any) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  if (!tasks.length)
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center">
+        <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Clock className="w-10 h-10 text-gray-400" />
         </div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks found</h3>
+        <p className="text-gray-500 mb-6 max-w-md mx-auto">
+          Get started by creating your first task or adjust your filters to see existing tasks.
+        </p>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md font-medium inline-flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Create Your First Task
+        </button>
+      </div>
+    );
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Table Header */}
+      <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
+        <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+          <div className="col-span-5">Task</div>
+          <div className="col-span-2">Status</div>
+          <div className="col-span-2">Priority</div>
+          <div className="col-span-2">Due Date</div>
+          <div className="col-span-1 text-right">Actions</div>
+        </div>
+      </div>
+
+      {/* Task Rows */}
+      <div className="divide-y divide-gray-100">
+        {tasks.map((task: Task) => (
+          <div
+            key={task._id}
+            className="px-6 py-4 hover:bg-gray-50 transition-colors group cursor-pointer"
+            onClick={() => router.push(`/tasks/${task._id}`)}
+          >
+            <div className="grid grid-cols-12 gap-4 items-center">
+              {/* Task Details */}
+              <div className="col-span-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        {task.title}
+                      </h3>
+                      {isOverdue(task.dueDate) && (
+                        <span className="flex items-center gap-1 text-xs text-rose-600 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          Overdue
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-1">{task.description}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="col-span-2">
+                <select
+                  value={task.status}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    updateTaskStatus(task._id, e.target.value as TaskStatus);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full border-2 focus:ring-2 focus:ring-blue-500 transition-all ${getStatusColor(
+                    task.status
+                  )}`}
+                >
+                  <option value="todo">To Do</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="review">In Review</option>
+                  <option value="testing">Testing</option>
+                  <option value="completed">Completed</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </div>
+
+              {/* Priority */}
+              <div className="col-span-2">
+                <span
+                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getPriorityColor(
+                    task.priority
+                  )}`}
+                >
+                  {enumToDisplayText(task.priority)}
+                </span>
+              </div>
+
+              {/* Due Date */}
+              <div className="col-span-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <span className={isOverdue(task.dueDate) ? "text-rose-600 font-semibold" : "text-gray-700"}>
+                    {formatDate(task.dueDate)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="col-span-1 text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/tasks/${task._id}`);
+                    }}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTask(task._id);
+                    }}
+                    className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Enhanced Kanban View
+function KanbanView({ columns, tasks, isOverdue, updateTaskStatus, router }: any) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 overflow-x-auto pb-4">
+      {columns.map((col: any) => {
+        const colTasks = tasks.filter((t: Task) => t.status === col.status);
+        return (
+          <div key={col.status} className="min-w-[280px] lg:min-w-0">
+            {/* Column Header */}
+            <div className={`${col.color} border-2 rounded-lg p-3 mb-3 shadow-sm`}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900 text-sm">{col.title}</h3>
+                <span className="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">
+                  {colTasks.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Column Cards */}
+            <div className="space-y-3">
+              {colTasks.length === 0 ? (
+                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
+                  <p className="text-xs text-gray-400 font-medium">No tasks</p>
+                </div>
+              ) : (
+                colTasks.map((task: Task) => (
+                  <div
+                    key={task._id}
+                    onClick={() => router.push(`/tasks/${task._id}`)}
+                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg hover:border-gray-300 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900 text-sm leading-tight flex-1 group-hover:text-blue-600 transition-colors">
+                        {task.title}
+                      </h4>
+                      {isOverdue(task.dueDate) && (
+                        <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 ml-2" />
+                      )}
+                    </div>
+
+                    <p className="text-xs text-gray-600 mb-3 line-clamp-2 leading-relaxed">
+                      {task.description}
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${getPriorityColor(
+                          task.priority
+                        )}`}
+                      >
+                        {enumToDisplayText(task.priority)}
+                      </span>
+
+                      <div
+                        className={`flex items-center gap-1.5 text-xs ${
+                          isOverdue(task.dueDate) ? "text-rose-600 font-semibold" : "text-gray-500"
+                        }`}
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>{formatDate(task.dueDate)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Enhanced Create Task Modal
+function CreateTaskModal({ onClose, onSuccess, projects }: any) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [projectId, setProjectId] = useState(projects[0]?._id || "");
+  const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
+  const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO);
+  const [dueDate, setDueDate] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !dueDate) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await apiClient.createTask({ 
+        title, 
+        description, 
+        projectId, 
+        priority, 
+        status, 
+        dueDate,
+        tags: [],
+        dependencies: []
+      });
+      toast.success("Task created successfully");
+      onSuccess();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create task");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Create New Task</h2>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Task Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter task title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <textarea
+              placeholder="Describe the task in detail..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Project</label>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white"
+              >
+                {(projects || []).map((p: Project) => (
+                  <option key={p._id} value={p._id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Due Date <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as TaskPriority)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Initial Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white"
+              >
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">In Review</option>
+                <option value="testing">Testing</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium text-sm shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Create Task
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

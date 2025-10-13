@@ -149,27 +149,6 @@ export default function LoginPage() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Demo Credentials</span>
-              </div>
-            </div>
-
-            <div className="mt-4 text-sm text-gray-600 space-y-2">
-              <div className="p-3 bg-gray-50 rounded-md">
-                <p className="font-medium text-gray-900 mb-1">Admin Account</p>
-                <p>Email: admin@example.com</p>
-                <p>Password: password123</p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-md">
-                <p className="font-medium text-gray-900 mb-1">Manager Account</p>
-                <p>Email: manager@example.com</p>
-                <p>Password: password123</p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-md">
-                <p className="font-medium text-gray-900 mb-1">Team Member Account</p>
-                <p>Email: user@example.com</p>
-                <p>Password: password123</p>
-              </div>
             </div>
           </div>
         </div>
