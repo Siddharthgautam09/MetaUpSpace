@@ -234,3 +234,59 @@
 {
   "service": "task-management-api"
 }
+2025-10-13 23:15:45 [INFO]: Connected to MongoDB: mongodb+srv://siddharth123:test123@metaupspacetask.rrub2ox.mongodb.net/?retryWrites=true&w=majority&appName=MetaUpSpaceTask
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:15:45 [INFO]: Server running on port 5000 in development mode
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:15:45 [INFO]: API documentation available at http://localhost:5000/api/docs
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:16:45 [INFO]: ::1 - - [13/Oct/2025:17:46:45 +0000] "POST /api/auth/login HTTP/1.1" 401 55 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:16:51 [INFO]: ::1 - - [13/Oct/2025:17:46:51 +0000] "POST /api/auth/login HTTP/1.1" 401 55 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:16:53 [INFO]: ::1 - - [13/Oct/2025:17:46:53 +0000] "POST /api/auth/login HTTP/1.1" 401 55 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:17:05 [INFO]: ::1 - - [13/Oct/2025:17:47:05 +0000] "POST /api/auth/login HTTP/1.1" 401 55 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:20:11 [INFO]: Connected to MongoDB: mongodb+srv://siddharth123:test123@metaupspacetask.rrub2ox.mongodb.net/?retryWrites=true&w=majority&appName=MetaUpSpaceTask
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:20:11 [INFO]: Server running on port 5000 in development mode
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:20:11 [INFO]: API documentation available at http://localhost:5000/api/docs
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:20:35 [INFO]: SIGINT received, shutting down gracefully
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:23:04 [INFO]: Connected to MongoDB: mongodb+srv://siddharth123:test123@metaupspacetask.rrub2ox.mongodb.net/?retryWrites=true&w=majority&appName=MetaUpSpaceTask
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:23:04 [INFO]: Server running on port 5000 in development mode
+{
+  "service": "task-management-api"
+}
+2025-10-13 23:23:04 [INFO]: API documentation available at http://localhost:5000/api/docs
+{
+  "service": "task-management-api"
+}
