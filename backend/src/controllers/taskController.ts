@@ -43,10 +43,9 @@ export const createTask = async (req: AuthenticatedRequest, res: Response): Prom
       return;
     }
 
-    // Check if user can create tasks for this project
-    const canCreate = user.role === UserRole.ADMIN ||
-                     project.managerId.toString() === user._id.toString() ||
-                     project.teamMembers.some(memberId => memberId.toString() === user._id.toString());
+  // Only admins and project managers can create tasks
+  const canCreate = user.role === UserRole.ADMIN ||
+           project.managerId.toString() === user._id.toString();
 
     if (!canCreate) {
       res.status(403).json({

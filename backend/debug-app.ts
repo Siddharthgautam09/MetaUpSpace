@@ -1,15 +1,15 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 console.log('=== DEBUG APP START ===');
 
 try {
   console.log('1. Loading config...');
-  const config = require('../config').default;
+  const config = require('../config');
   console.log('✅ Config loaded');
 
   console.log('2. Loading database...');
@@ -79,13 +79,18 @@ try {
         }, 3000);
       });
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.error('❌ Database connection failed:', error);
+      if (error && error.stack) {
+        console.error('Stack:', error.stack);
+      }
       process.exit(1);
     });
 
-} catch (error) {
+} catch (error: any) {
   console.error('❌ Error during app initialization:', error);
-  console.error('Stack:', error.stack);
+  if (error && error.stack) {
+    console.error('Stack:', error.stack);
+  }
   process.exit(1);
 }

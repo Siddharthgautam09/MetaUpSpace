@@ -27,10 +27,10 @@ const createProject = async (req, res) => {
         }
         const { title, description, deadline, priority, status, managerId, teamMembers, budget, estimatedHours, tags, } = req.body;
         const manager = await User_1.User.findById(managerId);
-        if (!manager || (manager.role !== User_1.UserRole.MANAGER && manager.role !== User_1.UserRole.ADMIN)) {
+        if (!manager || manager.role !== User_1.UserRole.ADMIN) {
             res.status(400).json({
                 success: false,
-                message: 'Invalid manager ID or user is not a manager',
+                message: 'Invalid manager ID or user is not an admin',
             });
             return;
         }
@@ -191,7 +191,7 @@ const updateProject = async (req, res) => {
             return;
         }
         const canUpdate = user.role === User_1.UserRole.ADMIN ||
-            (user.role === User_1.UserRole.MANAGER && project.managerId.toString() === user._id.toString());
+            project.managerId.toString() === user._id.toString();
         if (!canUpdate) {
             res.status(403).json({
                 success: false,
@@ -211,10 +211,10 @@ const updateProject = async (req, res) => {
         });
         if (updates.managerId) {
             const manager = await User_1.User.findById(updates.managerId);
-            if (!manager || (manager.role !== User_1.UserRole.MANAGER && manager.role !== User_1.UserRole.ADMIN)) {
+            if (!manager || manager.role !== User_1.UserRole.ADMIN) {
                 res.status(400).json({
                     success: false,
-                    message: 'Invalid manager ID or user is not a manager',
+                    message: 'Invalid manager ID or user is not an admin',
                 });
                 return;
             }
@@ -278,7 +278,7 @@ const deleteProject = async (req, res) => {
             return;
         }
         const canDelete = user.role === User_1.UserRole.ADMIN ||
-            (user.role === User_1.UserRole.MANAGER && project.managerId.toString() === user._id.toString());
+            project.managerId.toString() === user._id.toString();
         if (!canDelete) {
             res.status(403).json({
                 success: false,

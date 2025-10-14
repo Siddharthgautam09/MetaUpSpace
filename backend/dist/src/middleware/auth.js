@@ -144,7 +144,7 @@ const checkResourceOwnership = (resourceUserField = 'userId') => {
             });
             return;
         }
-        if (req.user.role === User_1.UserRole.ADMIN || req.user.role === User_1.UserRole.MANAGER) {
+        if (req.user.role === User_1.UserRole.ADMIN) {
             next();
             return;
         }

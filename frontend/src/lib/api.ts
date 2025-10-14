@@ -18,6 +18,11 @@ import {
 } from '@/types';
 
 class ApiClient {
+  // Fetch all active users
+  async getUsers(): Promise<ApiResponse<User[]>> {
+    const response = await this.client.get<ApiResponse<User[]>>('/users');
+    return response.data;
+  }
   private client: AxiosInstance;
   private accessToken: string | null = null;
 

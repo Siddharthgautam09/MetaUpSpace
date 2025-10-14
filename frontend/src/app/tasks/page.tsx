@@ -118,19 +118,34 @@ export default function TasksPage() {
     }
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || task.status === statusFilter;
-    const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-    const matchesProject =
-      !projectFilter ||
-      (typeof task.projectId === "object"
-        ? task.projectId._id === projectFilter
-        : task.projectId === projectFilter);
-    return matchesSearch && matchesStatus && matchesPriority && matchesProject;
-  });
+  const filteredTasks = user?.role === "admin"
+    ? tasks.filter((task) => {
+        const matchesSearch =
+          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = !statusFilter || task.status === statusFilter;
+        const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+        const matchesProject =
+          !projectFilter ||
+          (typeof task.projectId === "object"
+            ? task.projectId._id === projectFilter
+            : task.projectId === projectFilter);
+        return matchesSearch && matchesStatus && matchesPriority && matchesProject;
+      })
+    : tasks.filter((task) => {
+        const matchesSearch =
+          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = !statusFilter || task.status === statusFilter;
+        const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+        const matchesProject =
+          !projectFilter ||
+          (typeof task.projectId === "object"
+            ? task.projectId._id === projectFilter
+            : task.projectId === projectFilter);
+        const isAssigned = task.assignedTo === user?._id;
+        return matchesSearch && matchesStatus && matchesPriority && matchesProject && isAssigned;
+      });
 
   const isOverdue = (dueDate: string) =>
     new Date(dueDate) < new Date() && !["completed", "cancelled"].includes(statusFilter);
@@ -178,15 +193,15 @@ export default function TasksPage() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Modern Header with Stats */}
+        {/* Header with Stats */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Tasks</h1>
-                  <p className="text-sm text-gray-500 mt-1">Manage and track your team's work</p>
-                </div>
+          <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Tasks</h1>
+                <p className="text-sm text-gray-500 mt-1">Manage and track your team's work</p>
+              </div>
+              {user?.role === "admin" && (
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md font-medium"
@@ -194,32 +209,30 @@ export default function TasksPage() {
                   <Plus className="w-4 h-4" />
                   <span>New Task</span>
                 </button>
+              )}
+            </div>
+            <div className="flex gap-6 mt-4">
+              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 flex-1">
+                <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Total Tasks</div>
+                <div className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</div>
               </div>
-
-              {/* Stats Row */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                  <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Total Tasks</div>
-                  <div className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</div>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-3 border border-emerald-200">
-                  <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Completed</div>
-                  <div className="text-2xl font-bold text-emerald-900 mt-1">{stats.completed}</div>
-                </div>
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-3 border border-amber-200">
-                  <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">In Progress</div>
-                  <div className="text-2xl font-bold text-amber-900 mt-1">{stats.inProgress}</div>
-                </div>
-                <div className="bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg p-3 border border-rose-200">
-                  <div className="text-xs font-medium text-rose-700 uppercase tracking-wide">Overdue</div>
-                  <div className="text-2xl font-bold text-rose-900 mt-1">{stats.overdue}</div>
-                </div>
+              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200 flex-1">
+                <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Completed</div>
+                <div className="text-2xl font-bold text-emerald-900 mt-1">{stats.completed}</div>
+              </div>
+              <div className="bg-amber-50 rounded-lg p-3 border border-amber-200 flex-1">
+                <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">In Progress</div>
+                <div className="text-2xl font-bold text-amber-900 mt-1">{stats.inProgress}</div>
+              </div>
+              <div className="bg-rose-50 rounded-lg p-3 border border-rose-200 flex-1">
+                <div className="text-xs font-medium text-rose-700 uppercase tracking-wide">Overdue</div>
+                <div className="text-2xl font-bold text-rose-900 mt-1">{stats.overdue}</div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Enhanced Toolbar */}
+        {/* Toolbar and Filters */}
         <main className="max-w-7xl mx-auto px-6 py-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -234,51 +247,18 @@ export default function TasksPage() {
                   className="pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full text-sm transition-all"
                 />
               </div>
-
-              {/* Action Buttons */}
+              {/* Filters Button */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${
-                    showFilters || activeFiltersCount > 0
-                      ? "bg-blue-50 border-blue-300 text-blue-700"
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${showFilters || activeFiltersCount > 0 ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                 >
                   <Filter className="w-4 h-4" />
                   <span>Filters</span>
                   {activeFiltersCount > 0 && (
-                    <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                      {activeFiltersCount}
-                    </span>
+                    <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">{activeFiltersCount}</span>
                   )}
                 </button>
-
-                <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
-                      viewMode === "list"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    <List className="w-4 h-4" />
-                    <span>List</span>
-                  </button>
-                  <button
-                    onClick={() => setViewMode("kanban")}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
-                      viewMode === "kanban"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                    <span>Board</span>
-                  </button>
-                </div>
-
                 <button
                   onClick={loadTasks}
                   className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-300 rounded-lg transition-all"
@@ -288,7 +268,6 @@ export default function TasksPage() {
                 </button>
               </div>
             </div>
-
             {/* Filter Dropdowns */}
             {showFilters && (
               <div className="mt-4 pt-4 border-t border-gray-200">
@@ -306,7 +285,6 @@ export default function TasksPage() {
                     <option value="completed">Completed</option>
                     <option value="blocked">Blocked</option>
                   </select>
-
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
@@ -318,7 +296,6 @@ export default function TasksPage() {
                     <option value="high">High</option>
                     <option value="urgent">Urgent</option>
                   </select>
-
                   <select
                     value={projectFilter}
                     onChange={(e) => setProjectFilter(e.target.value)}
@@ -326,12 +303,9 @@ export default function TasksPage() {
                   >
                     <option value="">All Projects</option>
                     {(projects || []).map((project) => (
-                      <option key={project._id} value={project._id}>
-                        {project.title}
-                      </option>
+                      <option key={project._id} value={project._id}>{project.title}</option>
                     ))}
                   </select>
-
                   {activeFiltersCount > 0 && (
                     <button
                       onClick={clearFilters}
@@ -347,37 +321,59 @@ export default function TasksPage() {
           </div>
 
           {/* Tasks View */}
-          {viewMode === "list" ? (
-            <TaskListView
-              tasks={filteredTasks}
-              isOverdue={isOverdue}
-              updateTaskStatus={updateTaskStatus}
-              handleDeleteTask={handleDeleteTask}
-              router={router}
-              setShowCreateModal={setShowCreateModal}
-            />
+          {filteredTasks.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
+              <p className="text-gray-600 mb-6">
+                {user?.role === "admin"
+                  ? "Get started by creating your first task or adjust your filters to see existing tasks."
+                  : "No tasks assigned to you yet. Please wait for an admin to assign tasks."}
+              </p>
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  + Create Your First Task
+                </button>
+              )}
+            </div>
           ) : (
-            <KanbanView
-              columns={kanbanColumns}
-              tasks={filteredTasks}
-              isOverdue={isOverdue}
-              updateTaskStatus={updateTaskStatus}
-              router={router}
+            viewMode === "list" ? (
+              <TaskListView
+                tasks={filteredTasks}
+                isOverdue={isOverdue}
+                updateTaskStatus={updateTaskStatus}
+                handleDeleteTask={handleDeleteTask}
+                router={router}
+                setShowCreateModal={setShowCreateModal}
+              />
+            ) : (
+              <KanbanView
+                columns={kanbanColumns}
+                tasks={filteredTasks}
+                isOverdue={isOverdue}
+                updateTaskStatus={updateTaskStatus}
+                router={router}
+              />
+            )
+          )}
+
+          {/* Create Task Modal (admin only) */}
+          {user?.role === "admin" && showCreateModal && (
+            <CreateTaskModal
+              onClose={() => setShowCreateModal(false)}
+              onSuccess={() => {
+                setShowCreateModal(false);
+                loadTasks();
+              }}
+              projects={projects}
             />
           )}
         </main>
-
-        {/* Create Task Modal */}
-        {showCreateModal && (
-          <CreateTaskModal
-            onClose={() => setShowCreateModal(false)}
-            onSuccess={() => {
-              setShowCreateModal(false);
-              loadTasks();
-            }}
-            projects={projects}
-          />
-        )}
       </div>
     </AppLayout>
   );

@@ -110,13 +110,16 @@ class App {
    * Initialize routes
    */
   private initializeRoutes(): void {
-    const apiPrefix = config.server.apiPrefix;
+  const apiPrefix = config.server.apiPrefix;
 
-    // Mount routes
-    this.app.use(`${apiPrefix}/auth`, authRoutes);
-    this.app.use(`${apiPrefix}/projects`, projectRoutes);
-    this.app.use(`${apiPrefix}/tasks`, taskRoutes);
-    this.app.use(`${apiPrefix}/analytics`, analyticsRoutes);
+  // Mount routes
+  this.app.use(`${apiPrefix}/auth`, authRoutes);
+  this.app.use(`${apiPrefix}/projects`, projectRoutes);
+  this.app.use(`${apiPrefix}/tasks`, taskRoutes);
+  this.app.use(`${apiPrefix}/analytics`, analyticsRoutes);
+  // New users route
+  const usersRoutes = require('./routes/users').default;
+  this.app.use(`${apiPrefix}/users`, usersRoutes);
 
     // 404 handler for undefined routes
     this.app.use('*', (req: Request, res: Response) => {

@@ -30,12 +30,6 @@ const getDashboardAnalytics = async (req, res) => {
                 ]
             };
         }
-        else if (user.role === User_1.UserRole.MANAGER) {
-            const managerProjects = await Project_1.Project.find({ managerId: user._id }).select('_id');
-            const projectIds = managerProjects.map(p => p._id);
-            projectFilter = { managerId: user._id };
-            taskFilter = { projectId: { $in: projectIds } };
-        }
         const projectStats = await Project_1.Project.aggregate([
             { $match: projectFilter },
             {
@@ -68,9 +62,7 @@ const getDashboardAnalytics = async (req, res) => {
         ]);
         let teamWorkload = [];
         if (user.role !== User_1.UserRole.TEAM_MEMBER) {
-            const workloadFilter = user.role === User_1.UserRole.MANAGER ?
-                { projectId: { $in: await Project_1.Project.find(projectFilter).select('_id') } } :
-                {};
+            const workloadFilter = {};
             teamWorkload = await Task_1.Task.aggregate([
                 { $match: { ...workloadFilter, assignedTo: { $exists: true } } },
                 {
@@ -303,14 +295,8 @@ const getTeamAnalytics = async (req, res) => {
             };
         }
         let projectIds = [];
-        if (user.role === User_1.UserRole.MANAGER) {
-            const managerProjects = await Project_1.Project.find({ managerId: user._id }).select('_id');
-            projectIds = managerProjects.map(p => p._id);
-        }
-        else {
-            const allProjects = await Project_1.Project.find({}).select('_id');
-            projectIds = allProjects.map(p => p._id);
-        }
+        const allProjects = await Project_1.Project.find({}).select('_id');
+        projectIds = allProjects.map(p => p._id);
         const teamPerformance = await Task_1.Task.aggregate([
             {
                 $match: {

@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -36,6 +38,8 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  // Use current user as manager if admin
+  const managerId = user?._id || "";
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -321,6 +325,8 @@ export default function ProjectsPage() {
 }
 
 // Placeholder for CreateProjectModal component
+
+
 function CreateProjectModal({
   onClose,
   onSuccess,
@@ -328,27 +334,134 @@ function CreateProjectModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [priority, setPriority] = useState(ProjectPriority.MEDIUM);
+  const [tags, setTags] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
+
+  // Use current user as manager if admin
+  const { user } = useAuth();
+  const managerId = user?._id || "";
+
+  useEffect(() => {
+    // Fetch all users for team assignment
+    const fetchUsers = async () => {
+      try {
+        const res = await apiClient.getUsers();
+        if (res.success && res.data) {
+          setUsers(res.data);
+        }
+      } catch (err) {
+        toast.error("Failed to load users");
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await apiClient.createProject({
+        title,
+        description,
+        deadline,
+        priority,
+        managerId,
+        teamMembers: selectedTeamMembers,
+        tags: tags.split(",").map(t => t.trim()).filter(Boolean),
+      });
+      toast.success("Project created successfully");
+      onSuccess();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to create project");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 className="text-lg font-semibold mb-4">Create New Project</h2>
-        <p className="text-gray-600 mb-4">
-          Project creation modal will be implemented next.
-        </p>
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Project Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            rows={3}
+          />
+          <input
+            type="date"
+            value={deadline}
+            onChange={e => setDeadline(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          />
+          <select
+            value={priority}
+            onChange={e => setPriority(e.target.value as ProjectPriority)}
+            className="w-full border rounded px-3 py-2"
           >
-            Cancel
-          </button>
-          <button
-            onClick={onSuccess}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            <option value={ProjectPriority.LOW}>Low</option>
+            <option value={ProjectPriority.MEDIUM}>Medium</option>
+            <option value={ProjectPriority.HIGH}>High</option>
+            <option value={ProjectPriority.CRITICAL}>Critical</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Tags (comma separated)"
+            value={tags}
+            onChange={e => setTags(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          />
+          {/* Team members multi-select (exclude admins) */}
+          <label className="block text-sm font-medium">Assign Team Members</label>
+          <select
+            multiple
+            value={selectedTeamMembers}
+            onChange={e => {
+              const options = Array.from(e.target.selectedOptions).map(opt => opt.value);
+              setSelectedTeamMembers(options);
+            }}
+            className="w-full border rounded px-3 py-2 h-32"
           >
-            Create
-          </button>
-        </div>
+            {users.filter(u => u.role !== 'admin').map(u => (
+              <option key={u._id} value={u._id}>
+                {u.firstName} {u.lastName} ({u.email})
+              </option>
+            ))}
+          </select>
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Creating..." : "Create"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

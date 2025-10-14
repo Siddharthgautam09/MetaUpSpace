@@ -70,7 +70,7 @@ export const createProject = async (req: AuthenticatedRequest, res: Response): P
       deadline,
       priority: priority || ProjectPriority.MEDIUM,
       status: status || ProjectStatus.PLANNING,
-      managerId,
+      managerId: user._id, // where user is the logged-in admin
       teamMembers: teamMembers || [],
       budget,
       estimatedHours,
