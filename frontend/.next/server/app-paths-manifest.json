@@ -1,9 +1,6 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
   "/projects/page": "app/projects/page.js",
-  "/login/page": "app/login/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/tasks/page": "app/tasks/page.js",
-  "/tasks/[taskId]/page": "app/tasks/[taskId]/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/tasks/page": "app/tasks/page.js"
 }
