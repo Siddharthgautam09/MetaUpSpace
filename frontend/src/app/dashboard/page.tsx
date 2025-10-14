@@ -90,6 +90,40 @@ export default function Dashboard() {
     return null;
   }
 
+  // Role-based data filtering
+  const filteredProjects = projects.filter(project => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can only view projects they're assigned to
+    if (user.role === "team_member") {
+      const teamMemberIds = Array.isArray(project.teamMembers) 
+        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+        : [];
+      return teamMemberIds.includes(user._id);
+    }
+    return false;
+  });
+
+  const filteredTasks = tasks.filter(task => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can view tasks assigned to them or in projects they're assigned to
+    if (user.role === "team_member") {
+      const assignedToId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+      if (assignedToId === user._id) return true;
+      
+      // Check if user is in the project team
+      const project = projects.find(p => p._id === (typeof task.projectId === 'string' ? task.projectId : task.projectId?._id));
+      if (project) {
+        const teamMemberIds = Array.isArray(project.teamMembers) 
+          ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+          : [];
+        return teamMemberIds.includes(user._id);
+      }
+    }
+    return false;
+  });
+
   // Helper function to get user name
   const getUserName = (userObj: User | string | undefined) => {
     if (!userObj) return "Unassigned";
@@ -113,7 +147,8 @@ export default function Dashboard() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
                 <p className="text-sm text-gray-600">
-                  Welcome back, {user.firstName}!
+                  Welcome back, {user.firstName}! 
+                  {user.role === "admin" ? " Manage your organization." : " View your assigned work."}
                 </p>
               </div>
               <div className="flex items-center space-x-4">
@@ -255,7 +290,7 @@ export default function Dashboard() {
                   </h3>
                   <div className="space-y-4">
                     {analytics.taskStats.map((stat) => {
-                      const statusTasks = tasks.filter(t => t.status === stat._id);
+                      const statusTasks = filteredTasks.filter(t => t.status === stat._id);
                       const percentage = analytics.overview.totalTasks > 0 
                         ? ((stat.count / analytics.overview.totalTasks) * 100).toFixed(1)
                         : '0';
@@ -304,7 +339,7 @@ export default function Dashboard() {
                   </h3>
                   <div className="space-y-4">
                     {analytics.priorityStats.map((stat) => {
-                      const priorityTasks = tasks.filter(t => t.priority === stat._id);
+                      const priorityTasks = filteredTasks.filter(t => t.priority === stat._id);
                       const percentage = analytics.overview.totalTasks > 0 
                         ? ((stat.count / analytics.overview.totalTasks) * 100).toFixed(1)
                         : '0';
@@ -347,7 +382,7 @@ export default function Dashboard() {
                   </h3>
                   <div className="space-y-4">
                     {analytics.projectStats.map((stat) => {
-                      const statusProjects = projects.filter(p => p.status === stat._id);
+                      const statusProjects = filteredProjects.filter(p => p.status === stat._id);
                       const percentage = analytics.overview.totalProjects > 0 
                         ? ((stat.count / analytics.overview.totalProjects) * 100).toFixed(1)
                         : '0';
@@ -471,7 +506,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500">
-                    {projects.length} total projects
+                    {filteredProjects.length} total projects
                   </span>
                   <button
                     onClick={() => {
@@ -486,9 +521,9 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="p-6">
-              {projects.length > 0 ? (
+              {filteredProjects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {projects.map((project) => (
+                  {filteredProjects.map((project) => (
                     <div
                       key={project._id}
                       className="border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-all duration-200 cursor-pointer bg-gradient-to-br from-white to-gray-50"
@@ -706,11 +741,11 @@ export default function Dashboard() {
                 All Tasks
               </h3>
               <span className="text-sm text-gray-500">
-                {tasks.length} total
+                {filteredTasks.length} total
               </span>
             </div>
             <div className="overflow-x-auto">
-              {tasks.length > 0 ? (
+              {filteredTasks.length > 0 ? (
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -735,7 +770,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {tasks.map((task) => (
+                    {filteredTasks.map((task) => (
                       <tr
                         key={task._id}
                         className="hover:bg-gray-50 cursor-pointer"

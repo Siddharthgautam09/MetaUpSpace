@@ -298,10 +298,12 @@ export const updateTask = async (req: AuthenticatedRequest, res: Response): Prom
     const project = task.projectId as any;
 
     // Check permissions
-    const canUpdate = user.role === UserRole.ADMIN ||
-                     project.managerId.toString() === user._id.toString() ||
-                     task.assignedTo?.toString() === user._id.toString() ||
-                     task.createdBy.toString() === user._id.toString();
+  const isTeamMember = Array.isArray(project.teamMembers) && project.teamMembers.some((memberId: any) => memberId.toString() === user._id.toString());
+  const canUpdate = user.role === UserRole.ADMIN ||
+           project.managerId.toString() === user._id.toString() ||
+           task.assignedTo?.toString() === user._id.toString() ||
+           task.createdBy.toString() === user._id.toString() ||
+           isTeamMember;
 
     if (!canUpdate) {
       res.status(403).json({

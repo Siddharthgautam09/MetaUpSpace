@@ -61,8 +61,8 @@ router.get(
 
 /**
  * @route   PUT /api/projects/:id
- * @desc    Update project
- * @access  Private (Admin, Project Manager)
+ * @desc    Update project (full update for admin/manager, status only for team members)
+ * @access  Private (Admin, Project Manager, Team Members for status only)
  */
 router.put(
   '/:id',

@@ -63,6 +63,72 @@ export default function TasksPage() {
     }
   }, [user, authLoading, router]);
 
+  // Role-based access control functions
+  const canCreateTask = (project?: Project) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    if (!project) return false;
+    // Team members can create tasks only in projects they're assigned to
+    if (user.role === "team_member") {
+      const teamMemberIds = Array.isArray(project.teamMembers) 
+        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+        : [];
+      return teamMemberIds.includes(user._id);
+    }
+    return false;
+  };
+
+  const canEditTask = (task: Task) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can edit tasks assigned to them, created by them, or in projects they're assigned to
+    if (user.role === "team_member") {
+      const assignedToId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+      const createdById = typeof task.createdBy === 'string' ? task.createdBy : task.createdBy?._id;
+      if (assignedToId === user._id || createdById === user._id) return true;
+      // Check if user is in the project team
+      const project = projects.find(p => p._id === (typeof task.projectId === 'string' ? task.projectId : task.projectId?._id));
+      if (project) {
+        const teamMemberIds = Array.isArray(project.teamMembers) 
+          ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+          : [];
+        return teamMemberIds.includes(user._id);
+      }
+    }
+    return false;
+  };
+
+  const canDeleteTask = (task: Task) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can only delete tasks they created
+    if (user.role === "team_member") {
+      const createdById = typeof task.createdBy === 'string' ? task.createdBy : task.createdBy?._id;
+      return createdById === user._id;
+    }
+    return false;
+  };
+
+  const canViewTask = (task: Task) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can view tasks assigned to them or in projects they're assigned to
+    if (user.role === "team_member") {
+      const assignedToId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+      if (assignedToId === user._id) return true;
+      
+      // Check if user is in the project team
+      const project = projects.find(p => p._id === (typeof task.projectId === 'string' ? task.projectId : task.projectId?._id));
+      if (project) {
+        const teamMemberIds = Array.isArray(project.teamMembers) 
+          ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+          : [];
+        return teamMemberIds.includes(user._id);
+      }
+    }
+    return false;
+  };
+
   const loadTasks = async () => {
     try {
       setLoading(true);
@@ -115,43 +181,36 @@ export default function TasksPage() {
 
   const updateTaskStatus = async (taskId: string, newStatus: TaskStatus) => {
     try {
-      await apiClient.updateTask(taskId, { status: newStatus });
+      console.log(`Updating task ${taskId} to status: ${newStatus}`);
+      const response = await apiClient.updateTask(taskId, { status: newStatus });
+      console.log("Update response:", response);
       toast.success("Task status updated");
       loadTasks();
     } catch (error) {
-      console.error(error);
+      console.error("Task update error:", error);
       toast.error("Failed to update task status");
     }
   };
 
-  const filteredTasks = user?.role === "admin"
-    ? tasks.filter((task) => {
-        const matchesSearch =
-          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = !statusFilter || task.status === statusFilter;
-        const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-        const matchesProject =
-          !projectFilter ||
-          (typeof task.projectId === "object"
-            ? task.projectId._id === projectFilter
-            : task.projectId === projectFilter);
-        return matchesSearch && matchesStatus && matchesPriority && matchesProject;
-      })
-    : tasks.filter((task) => {
-        const matchesSearch =
-          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = !statusFilter || task.status === statusFilter;
-        const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-        const matchesProject =
-          !projectFilter ||
-          (typeof task.projectId === "object"
-            ? task.projectId._id === projectFilter
-            : task.projectId === projectFilter);
-        const isAssigned = task.assignedTo === user?._id;
-        return matchesSearch && matchesStatus && matchesPriority && matchesProject && isAssigned;
-      });
+  const filteredTasks = tasks.filter((task) => {
+    // First check if user can view this task
+    if (!canViewTask(task)) {
+      return false;
+    }
+    
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || task.status === statusFilter;
+    const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+    const matchesProject =
+      !projectFilter ||
+      (typeof task.projectId === "object"
+        ? task.projectId._id === projectFilter
+        : task.projectId === projectFilter);
+    
+    return matchesSearch && matchesStatus && matchesPriority && matchesProject;
+  });
 
   const isOverdue = (dueDate: string) =>
     new Date(dueDate) < new Date() && !["completed", "cancelled"].includes(statusFilter);
@@ -421,6 +480,7 @@ export default function TasksPage() {
                 handleDeleteTask={handleDeleteTask}
                 router={router}
                 setShowCreateModal={setShowCreateModal}
+                canEditTask={canEditTask}
               />
             ) : (
               <KanbanView
@@ -451,7 +511,7 @@ export default function TasksPage() {
 }
 
 // Enhanced Task List View
-function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, router, setShowCreateModal }: any) {
+function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, router, setShowCreateModal, canEditTask }: any) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   if (!tasks.length)
@@ -518,24 +578,35 @@ function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, ro
 
               {/* Status */}
               <div className="col-span-2">
-                <select
-                  value={task.status}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    updateTaskStatus(task._id, e.target.value as TaskStatus);
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-full border-2 focus:ring-2 focus:ring-blue-500 transition-all ${getStatusColor(
-                    task.status
-                  )}`}
-                >
-                  <option value="todo">To Do</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="review">In Review</option>
-                  <option value="testing">Testing</option>
-                  <option value="completed">Completed</option>
-                  <option value="blocked">Blocked</option>
-                </select>
+                {canEditTask(task) ? (
+                  <select
+                    value={task.status}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      updateTaskStatus(task._id, e.target.value as TaskStatus);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-full border-2 focus:ring-2 focus:ring-blue-500 transition-all ${getStatusColor(
+                      task.status
+                    )}`}
+                    title="Update task status"
+                  >
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="review">In Review</option>
+                    <option value="testing">Testing</option>
+                    <option value="completed">Completed</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
+                ) : (
+                  <span
+                    className={`text-xs font-medium px-3 py-1.5 rounded-full ${getStatusColor(
+                      task.status
+                    )}`}
+                  >
+                    {enumToDisplayText(task.status)}
+                  </span>
+                )}
               </div>
 
               {/* Priority */}

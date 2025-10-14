@@ -57,6 +57,42 @@ export default function ProjectsPage() {
     }
   }, [user, authLoading, router]);
 
+  // Role-based access control functions
+  const canCreateProject = user?.role === "admin";
+  
+  const canEditProject = (project: Project) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can edit project status if they're assigned to the project
+    if (user.role === "team_member") {
+      const teamMemberIds = Array.isArray(project.teamMembers) 
+        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+        : [];
+      return teamMemberIds.includes(user._id);
+    }
+    return false;
+  };
+  
+  const canDeleteProject = (project: Project) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members cannot delete projects
+    return false;
+  };
+  
+  const canViewProject = (project: Project) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    // Team members can only view projects they're assigned to
+    if (user.role === "team_member") {
+      const teamMemberIds = Array.isArray(project.teamMembers) 
+        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+        : [];
+      return teamMemberIds.includes(user._id);
+    }
+    return false;
+  };
+
   const loadProjects = async () => {
     try {
       setLoading(true);
@@ -102,7 +138,23 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleUpdateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
+    try {
+      await apiClient.updateProject(projectId, { status: newStatus });
+      toast.success("Project status updated successfully");
+      loadProjects();
+    } catch (error) {
+      console.error("Failed to update project status:", error);
+      toast.error("Failed to update project status");
+    }
+  };
+
   const filteredProjects = projects.filter((project) => {
+    // First check if user can view this project
+    if (!canViewProject(project)) {
+      return false;
+    }
+    
     const matchesSearch =
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -125,8 +177,6 @@ export default function ProjectsPage() {
     return null;
   }
 
-  const canCreateProject = user.role === "admin" || user.role === "manager";
-
   return (
     <AppLayout>
       <div className="bg-gray-50">
@@ -136,7 +186,7 @@ export default function ProjectsPage() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
                 <p className="text-sm text-gray-600">
-                  Manage your team projects
+                  {user.role === "admin" ? "Manage your team projects" : "View your assigned projects"}
                 </p>
               </div>
               <div className="flex items-center space-x-4">
@@ -170,7 +220,7 @@ export default function ProjectsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  All Projects ({projects.length})
+                  All Projects ({filteredProjects.length})
                 </button>
                 <button
                   onClick={() => {
@@ -183,7 +233,7 @@ export default function ProjectsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Planning ({projects.filter(p => p.status === ProjectStatus.PLANNING).length})
+                  Planning ({filteredProjects.filter(p => p.status === ProjectStatus.PLANNING).length})
                 </button>
                 <button
                   onClick={() => {
@@ -196,7 +246,7 @@ export default function ProjectsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  In Progress ({projects.filter(p => p.status === ProjectStatus.IN_PROGRESS).length})
+                  In Progress ({filteredProjects.filter(p => p.status === ProjectStatus.IN_PROGRESS).length})
                 </button>
                 <button
                   onClick={() => {
@@ -209,7 +259,7 @@ export default function ProjectsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Testing ({projects.filter(p => p.status === ProjectStatus.TESTING).length})
+                  Testing ({filteredProjects.filter(p => p.status === ProjectStatus.TESTING).length})
                 </button>
                 <button
                   onClick={() => {
@@ -222,7 +272,7 @@ export default function ProjectsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Completed ({projects.filter(p => p.status === ProjectStatus.COMPLETED).length})
+                  Completed ({filteredProjects.filter(p => p.status === ProjectStatus.COMPLETED).length})
                 </button>
                 <button
                   onClick={() => {
@@ -235,7 +285,7 @@ export default function ProjectsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  On Hold ({projects.filter(p => p.status === ProjectStatus.ON_HOLD).length})
+                  On Hold ({filteredProjects.filter(p => p.status === ProjectStatus.ON_HOLD).length})
                 </button>
               </nav>
             </div>
@@ -313,13 +363,30 @@ export default function ProjectsPage() {
                         {project.title}
                       </h3>
                       <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            project.status
-                          )}`}
-                        >
-                          {enumToDisplayText(project.status)}
-                        </span>
+                        {canEditProject(project) ? (
+                          <select
+                            value={project.status}
+                            onChange={(e) => handleUpdateProjectStatus(project._id, e.target.value as ProjectStatus)}
+                            className={`px-2 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                              project.status
+                            )}`}
+                            title="Update project status"
+                          >
+                            <option value="planning">Planning</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="testing">Testing</option>
+                            <option value="completed">Completed</option>
+                            <option value="on_hold">On Hold</option>
+                          </select>
+                        ) : (
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              project.status
+                            )}`}
+                          >
+                            {enumToDisplayText(project.status)}
+                          </span>
+                        )}
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
                             project.priority
@@ -330,18 +397,22 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/projects/${project._id}` as any)
-                        }
-                        className="p-1 text-gray-400 hover:text-blue-600"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      {canCreateProject && (
+                      {canViewProject(project) && (
+                        <button
+                          onClick={() =>
+                            router.push(`/projects/${project._id}` as any)
+                          }
+                          className="p-1 text-gray-400 hover:text-blue-600"
+                          title={canEditProject(project) ? "Edit Project" : "View Project"}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
+                      {canDeleteProject(project) && (
                         <button
                           onClick={() => handleDeleteProject(project._id)}
                           className="p-1 text-gray-400 hover:text-red-600"
+                          title="Delete Project"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

@@ -253,10 +253,29 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response): P
     }
 
     // Check permissions
-    const canUpdate = user.role === UserRole.ADMIN ||
-                     project.managerId.toString() === user._id.toString();
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isProjectManager = project.managerId.toString() === user._id.toString();
+    const isTeamMember = project.teamMembers.some((member: any) => 
+      member.toString() === user._id.toString()
+    );
 
-    if (!canUpdate) {
+    // Different permission levels for different operations
+    const canFullUpdate = isAdmin || isProjectManager;
+    const canUpdateStatus = isAdmin || isProjectManager || isTeamMember;
+
+    // If user is only a team member, restrict to status updates only
+    if (isTeamMember && !isAdmin && !isProjectManager) {
+      const requestedUpdates = Object.keys(req.body);
+      const statusOnlyUpdate = requestedUpdates.length === 1 && requestedUpdates[0] === 'status';
+      
+      if (!statusOnlyUpdate) {
+        res.status(403).json({
+          success: false,
+          message: 'Team members can only update project status',
+        });
+        return;
+      }
+    } else if (!canFullUpdate) {
       res.status(403).json({
         success: false,
         message: 'Insufficient permissions to update this project',
