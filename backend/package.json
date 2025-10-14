@@ -8,7 +8,9 @@
     "start": "node dist/app.js",
     "dev": "nodemon src/app.ts",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "vercel-build": "echo 'Building for Vercel' && tsc",
+    "postinstall": "tsc || echo 'TypeScript compilation skipped'"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
