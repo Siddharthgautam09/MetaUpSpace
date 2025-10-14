@@ -238,92 +238,145 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Analytics Section */}
+              {/* Analytics Section - Detailed Breakdowns */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                {/* Task Status Chart */}
+                {/* Task Status Chart with Details */}
                 <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Tasks by Status
                   </h3>
-                  <div className="space-y-3">
-                    {analytics.taskStats.map((stat) => (
-                      <div
-                        key={stat._id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center flex-1">
-                          <span
-                            className={`inline-block w-3 h-3 rounded-full mr-3 ${
-                              getStatusColor(stat._id).split(" ")[2]
-                            }`}
-                          ></span>
-                          <span className="text-sm font-medium text-gray-700">
-                            {enumToDisplayText(stat._id)}
-                          </span>
+                  <div className="space-y-4">
+                    {analytics.taskStats.map((stat) => {
+                      const statusTasks = tasks.filter(t => t.status === stat._id);
+                      const percentage = analytics.overview.totalTasks > 0 
+                        ? ((stat.count / analytics.overview.totalTasks) * 100).toFixed(1)
+                        : '0';
+                      return (
+                        <div key={stat._id} className="border-b border-gray-100 pb-3 last:border-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center flex-1">
+                              <span
+                                className={`inline-block w-3 h-3 rounded-full mr-3 ${
+                                  getStatusColor(stat._id).split(" ")[2]
+                                }`}
+                              ></span>
+                              <span className="text-sm font-medium text-gray-700">
+                                {enumToDisplayText(stat._id)}
+                              </span>
+                            </div>
+                            <span className="text-sm font-bold text-gray-900">
+                              {stat.count} ({percentage}%)
+                            </span>
+                          </div>
+                          {stat.totalEstimatedHours && (
+                            <div className="ml-6 text-xs text-gray-500">
+                              Est: {stat.totalEstimatedHours}h
+                              {stat.totalActualHours && ` | Actual: ${stat.totalActualHours}h`}
+                            </div>
+                          )}
+                          {statusTasks.length > 0 && statusTasks.length <= 3 && (
+                            <div className="ml-6 mt-1 space-y-1">
+                              {statusTasks.slice(0, 3).map(task => (
+                                <div key={task._id} className="text-xs text-gray-600 truncate">
+                                  • {task.title}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm font-bold text-gray-900">
-                          {stat.count}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Priority Distribution */}
+                {/* Priority Distribution with Details */}
                 <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Tasks by Priority
                   </h3>
-                  <div className="space-y-3">
-                    {analytics.priorityStats.map((stat) => (
-                      <div
-                        key={stat._id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center flex-1">
-                          <span
-                            className={`inline-block w-3 h-3 rounded-full mr-3 ${
-                              getPriorityColor(stat._id).split(" ")[2]
-                            }`}
-                          ></span>
-                          <span className="text-sm font-medium text-gray-700">
-                            {enumToDisplayText(stat._id)}
-                          </span>
+                  <div className="space-y-4">
+                    {analytics.priorityStats.map((stat) => {
+                      const priorityTasks = tasks.filter(t => t.priority === stat._id);
+                      const percentage = analytics.overview.totalTasks > 0 
+                        ? ((stat.count / analytics.overview.totalTasks) * 100).toFixed(1)
+                        : '0';
+                      return (
+                        <div key={stat._id} className="border-b border-gray-100 pb-3 last:border-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center flex-1">
+                              <span
+                                className={`inline-block w-3 h-3 rounded-full mr-3 ${
+                                  getPriorityColor(stat._id).split(" ")[2]
+                                }`}
+                              ></span>
+                              <span className="text-sm font-medium text-gray-700">
+                                {enumToDisplayText(stat._id)}
+                              </span>
+                            </div>
+                            <span className="text-sm font-bold text-gray-900">
+                              {stat.count} ({percentage}%)
+                            </span>
+                          </div>
+                          {priorityTasks.length > 0 && priorityTasks.length <= 3 && (
+                            <div className="ml-6 mt-1 space-y-1">
+                              {priorityTasks.slice(0, 3).map(task => (
+                                <div key={task._id} className="text-xs text-gray-600 truncate">
+                                  • {task.title}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm font-bold text-gray-900">
-                          {stat.count}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Project Status */}
+                {/* Project Status with Details */}
                 <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Projects by Status
                   </h3>
-                  <div className="space-y-3">
-                    {analytics.projectStats.map((stat) => (
-                      <div
-                        key={stat._id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center flex-1">
-                          <span
-                            className={`inline-block w-3 h-3 rounded-full mr-3 ${
-                              getStatusColor(stat._id).split(" ")[2]
-                            }`}
-                          ></span>
-                          <span className="text-sm font-medium text-gray-700">
-                            {enumToDisplayText(stat._id)}
-                          </span>
+                  <div className="space-y-4">
+                    {analytics.projectStats.map((stat) => {
+                      const statusProjects = projects.filter(p => p.status === stat._id);
+                      const percentage = analytics.overview.totalProjects > 0 
+                        ? ((stat.count / analytics.overview.totalProjects) * 100).toFixed(1)
+                        : '0';
+                      return (
+                        <div key={stat._id} className="border-b border-gray-100 pb-3 last:border-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center flex-1">
+                              <span
+                                className={`inline-block w-3 h-3 rounded-full mr-3 ${
+                                  getStatusColor(stat._id).split(" ")[2]
+                                }`}
+                              ></span>
+                              <span className="text-sm font-medium text-gray-700">
+                                {enumToDisplayText(stat._id)}
+                              </span>
+                            </div>
+                            <span className="text-sm font-bold text-gray-900">
+                              {stat.count} ({percentage}%)
+                            </span>
+                          </div>
+                          {stat.totalBudget && stat.totalBudget > 0 && (
+                            <div className="ml-6 text-xs text-gray-500">
+                              Total Budget: ${stat.totalBudget.toLocaleString()}
+                            </div>
+                          )}
+                          {statusProjects.length > 0 && statusProjects.length <= 3 && (
+                            <div className="ml-6 mt-1 space-y-1">
+                              {statusProjects.slice(0, 3).map(project => (
+                                <div key={project._id} className="text-xs text-gray-600 truncate">
+                                  • {project.title}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <span className="text-sm font-bold text-gray-900">
-                          {stat.count}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

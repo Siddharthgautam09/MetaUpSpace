@@ -234,6 +234,84 @@ export default function TasksPage() {
 
         {/* Toolbar and Filters */}
         <main className="max-w-7xl mx-auto px-6 py-6">
+          {/* Status Tabs */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+            <div className="border-b border-gray-200">
+              <nav className="flex space-x-2 px-4" aria-label="Tabs">
+                <button
+                  onClick={() => setStatusFilter("")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === ""
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  All Tasks ({tasks.length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("todo")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === "todo"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  To Do ({tasks.filter(t => t.status === "todo").length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("in_progress")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === "in_progress"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  In Progress ({tasks.filter(t => t.status === "in_progress").length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("review")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === "review"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Review ({tasks.filter(t => t.status === "review").length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("testing")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === "testing"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Testing ({tasks.filter(t => t.status === "testing").length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("completed")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === "completed"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Completed ({tasks.filter(t => t.status === "completed").length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("blocked")}
+                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    statusFilter === "blocked"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Blocked ({tasks.filter(t => t.status === "blocked").length})
+                </button>
+              </nav>
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
@@ -272,19 +350,6 @@ export default function TasksPage() {
             {showFilters && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex flex-wrap gap-3">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white"
-                  >
-                    <option value="">All Status</option>
-                    <option value="todo">To Do</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="review">In Review</option>
-                    <option value="testing">Testing</option>
-                    <option value="completed">Completed</option>
-                    <option value="blocked">Blocked</option>
-                  </select>
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}

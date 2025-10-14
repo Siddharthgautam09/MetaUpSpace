@@ -40,9 +40,10 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   // Use current user as manager if admin
   const managerId = user?._id || "";
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ProjectStatus | "">("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<ProjectStatus | "all">("all");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -149,6 +150,92 @@ export default function ProjectsPage() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Status Tabs */}
+          <div className="bg-white rounded-lg shadow-sm mb-6 border border-gray-200">
+            <div className="border-b border-gray-200">
+              <nav className="flex space-x-4 px-6" aria-label="Tabs">
+                <button
+                  onClick={() => {
+                    setSelectedTab("all");
+                    setStatusFilter("");
+                  }}
+                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
+                    selectedTab === "all"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  All Projects ({projects.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTab(ProjectStatus.PLANNING);
+                    setStatusFilter(ProjectStatus.PLANNING);
+                  }}
+                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
+                    selectedTab === ProjectStatus.PLANNING
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Planning ({projects.filter(p => p.status === ProjectStatus.PLANNING).length})
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTab(ProjectStatus.IN_PROGRESS);
+                    setStatusFilter(ProjectStatus.IN_PROGRESS);
+                  }}
+                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
+                    selectedTab === ProjectStatus.IN_PROGRESS
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  In Progress ({projects.filter(p => p.status === ProjectStatus.IN_PROGRESS).length})
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTab(ProjectStatus.TESTING);
+                    setStatusFilter(ProjectStatus.TESTING);
+                  }}
+                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
+                    selectedTab === ProjectStatus.TESTING
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Testing ({projects.filter(p => p.status === ProjectStatus.TESTING).length})
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTab(ProjectStatus.COMPLETED);
+                    setStatusFilter(ProjectStatus.COMPLETED);
+                  }}
+                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
+                    selectedTab === ProjectStatus.COMPLETED
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Completed ({projects.filter(p => p.status === ProjectStatus.COMPLETED).length})
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTab(ProjectStatus.ON_HOLD);
+                    setStatusFilter(ProjectStatus.ON_HOLD);
+                  }}
+                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
+                    selectedTab === ProjectStatus.ON_HOLD
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  On Hold ({projects.filter(p => p.status === ProjectStatus.ON_HOLD).length})
+                </button>
+              </nav>
+            </div>
+          </div>
+
           {/* Filters */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
@@ -163,19 +250,6 @@ export default function ProjectsPage() {
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
                   />
                 </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">All Status</option>
-                  <option value="planning">Planning</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="testing">Testing</option>
-                  <option value="completed">Completed</option>
-                  <option value="on_hold">On Hold</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
@@ -229,9 +303,27 @@ export default function ProjectsPage() {
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
-                      {project.title}
-                    </h3>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        {project.title}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            project.status
+                          )}`}
+                        >
+                          {enumToDisplayText(project.status)}
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                            project.priority
+                          )}`}
+                        >
+                          {enumToDisplayText(project.priority)}
+                        </span>
+                      </div>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() =>
@@ -256,52 +348,79 @@ export default function ProjectsPage() {
                     {project.description}
                   </p>
 
-                  <div className="flex items-center justify-between mb-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        project.status
-                      )}`}
-                    >
-                      {enumToDisplayText(project.status)}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                        project.priority
-                      )}`}
-                    >
-                      {enumToDisplayText(project.priority)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>Due: {formatDate(project.deadline)}</span>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center justify-between text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Deadline:</span>
+                      </div>
+                      <span className="font-medium text-gray-900">{formatDate(project.deadline)}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Users className="w-4 h-4" />
-                      <span>
-                        {project.teamMembers?.length || 0} team members
+                    <div className="flex items-center justify-between text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4" />
+                        <span>Team:</span>
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        {project.teamMembers?.length || 0} members
                       </span>
                     </div>
                     {project.budget && (
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="w-4 h-4" />
-                        <span>${project.budget.toLocaleString()}</span>
+                      <div className="flex items-center justify-between text-gray-600">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="w-4 h-4" />
+                          <span>Budget:</span>
+                        </div>
+                        <span className="font-medium text-gray-900">${project.budget.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {project.estimatedHours && (
+                      <div className="flex items-center justify-between text-gray-600">
+                        <span>Estimated Hours:</span>
+                        <span className="font-medium text-gray-900">{project.estimatedHours}h</span>
+                      </div>
+                    )}
+                    {project.actualHours && (
+                      <div className="flex items-center justify-between text-gray-600">
+                        <span>Actual Hours:</span>
+                        <span className="font-medium text-gray-900">{project.actualHours}h</span>
                       </div>
                     )}
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>
-                        Manager:{" "}
-                        {typeof project.managerId === "object"
-                          ? `${project.managerId.firstName} ${project.managerId.lastName}`
-                          : "Unknown"}
-                      </span>
-                      <span>Created: {formatDate(project.createdAt)}</span>
+                    <div className="space-y-1 text-xs text-gray-500">
+                      <div className="flex justify-between">
+                        <span>Manager:</span>
+                        <span className="font-medium">
+                          {typeof project.managerId === "object"
+                            ? `${project.managerId.firstName} ${project.managerId.lastName}`
+                            : "Unknown"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Created:</span>
+                        <span>{formatDate(project.createdAt)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Updated:</span>
+                        <span>{formatDate(project.updatedAt)}</span>
+                      </div>
                     </div>
+                    {project.tags && project.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {project.tags.slice(0, 3).map((tag, idx) => (
+                          <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                            {tag}
+                          </span>
+                        ))}
+                        {project.tags.length > 3 && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                            +{project.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
