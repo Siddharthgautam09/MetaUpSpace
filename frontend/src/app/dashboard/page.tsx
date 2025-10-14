@@ -59,7 +59,8 @@ export default function Dashboard() {
         const items =
           (projectsRes as any).data?.projects ??
           (projectsRes as any).data?.items ??
-          (projectsRes as any).items ?? [];
+          (projectsRes as any).items ??
+          [];
         console.log("Projects items:", items);
         setProjects(Array.isArray(items) ? items : []);
       } else {
@@ -70,7 +71,8 @@ export default function Dashboard() {
         const items =
           (tasksRes as any).data?.tasks ??
           (tasksRes as any).data?.items ??
-          (tasksRes as any).items ?? [];
+          (tasksRes as any).items ??
+          [];
         console.log("Tasks items:", items);
         setTasks(Array.isArray(items) ? items : []);
       } else {
@@ -104,7 +106,9 @@ export default function Dashboard() {
     // Team members can only view projects they're assigned to
     if (user.role === "team_member") {
       const teamMemberIds = Array.isArray(project.teamMembers)
-        ? project.teamMembers.map((tm) => (typeof tm === "string" ? tm : tm._id))
+        ? project.teamMembers.map((tm) =>
+            typeof tm === "string" ? tm : tm._id
+          )
         : [];
       return teamMemberIds.includes(user._id);
     }
@@ -117,16 +121,24 @@ export default function Dashboard() {
     // Team members can view tasks assigned to them or in projects they're assigned to
     if (user.role === "team_member") {
       const assignedToId =
-        typeof task.assignedTo === "string" ? task.assignedTo : task.assignedTo?._id;
+        typeof task.assignedTo === "string"
+          ? task.assignedTo
+          : task.assignedTo?._id;
       if (assignedToId === user._id) return true;
 
       // Check if user is in the project team
       const project = projects.find(
-        (p) => p._id === (typeof task.projectId === "string" ? task.projectId : task.projectId?._id)
+        (p) =>
+          p._id ===
+          (typeof task.projectId === "string"
+            ? task.projectId
+            : task.projectId?._id)
       );
       if (project) {
         const teamMemberIds = Array.isArray(project.teamMembers)
-          ? project.teamMembers.map((tm) => (typeof tm === "string" ? tm : tm._id))
+          ? project.teamMembers.map((tm) =>
+              typeof tm === "string" ? tm : tm._id
+            )
           : [];
         return teamMemberIds.includes(user._id);
       }
@@ -155,15 +167,9 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                   Dashboard
                 </h1>
-                <p className="text-sm text-slate-300">
-                  Welcome back, {user.firstName}!{" "}
-                  {user.role === "admin"
-                    ? " Manage your organization."
-                    : " View your assigned work."}
-                </p>
               </div>
               <div className="flex items-center space-x-4">
                 <span className="px-3 py-1.5 bg-indigo-800 text-indigo-200 text-xs font-semibold rounded-full uppercase tracking-wide">
@@ -175,10 +181,18 @@ export default function Dashboard() {
         </header>
 
         <main className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+
+          <p className="text-2xl text-slate-300 mb-12">
+            Welcome back, {user.firstName}!{" "}
+            {user.role === "admin"
+              ? " Manage your organization."
+              : " View your assigned work."}
+          </p>
+
           {analytics && (
             <>
               {/* Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 mt-8">
                 <div className="group bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-3xl shadow-xl hover:shadow-2xl p-8 border border-slate-200 transition-all duration-300 hover:transform hover:-translate-y-1">
                   <div className="flex items-center">
                     <div className="flex-1">
@@ -245,7 +259,8 @@ export default function Dashboard() {
                         {analytics.overview.completedTasks}
                       </p>
                       <p className="text-xs text-black mt-2 font-normal">
-                        {analytics.overview.completionRate.toFixed(1)}% completion rate
+                        {analytics.overview.completionRate.toFixed(1)}%
+                        completion rate
                       </p>
                     </div>
                     <div className="w-14 h-14 bg-gradient-to-br from-green-700 to-green-900 rounded-2xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
@@ -319,13 +334,21 @@ export default function Dashboard() {
                   </h3>
                   <div className="space-y-4">
                     {analytics.taskStats.map((stat) => {
-                      const statusTasks = filteredTasks.filter((t) => t.status === stat._id);
+                      const statusTasks = filteredTasks.filter(
+                        (t) => t.status === stat._id
+                      );
                       const percentage =
                         analytics.overview.totalTasks > 0
-                          ? ((stat.count / analytics.overview.totalTasks) * 100).toFixed(1)
+                          ? (
+                              (stat.count / analytics.overview.totalTasks) *
+                              100
+                            ).toFixed(1)
                           : "0";
                       return (
-                        <div key={stat._id} className="border-b border-gray-100 pb-3 last:border-0">
+                        <div
+                          key={stat._id}
+                          className="border-b border-gray-100 pb-3 last:border-0"
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center flex-1">
                               <span
@@ -344,18 +367,23 @@ export default function Dashboard() {
                           {stat.totalEstimatedHours && (
                             <div className="ml-6 text-xs text-gray-500">
                               Est: {stat.totalEstimatedHours}h
-                              {stat.totalActualHours && ` | Actual: ${stat.totalActualHours}h`}
+                              {stat.totalActualHours &&
+                                ` | Actual: ${stat.totalActualHours}h`}
                             </div>
                           )}
-                          {statusTasks.length > 0 && statusTasks.length <= 3 && (
-                            <div className="ml-6 mt-1 space-y-1">
-                              {statusTasks.slice(0, 3).map((task) => (
-                                <div key={task._id} className="text-xs text-gray-600 truncate">
-                                  • {task.title}
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                          {statusTasks.length > 0 &&
+                            statusTasks.length <= 3 && (
+                              <div className="ml-6 mt-1 space-y-1">
+                                {statusTasks.slice(0, 3).map((task) => (
+                                  <div
+                                    key={task._id}
+                                    className="text-xs text-gray-600 truncate"
+                                  >
+                                    • {task.title}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                         </div>
                       );
                     })}
@@ -364,18 +392,31 @@ export default function Dashboard() {
 
                 {/* Priority Distribution with Details */}
                 <div className="bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-3xl shadow-xl p-8 border border-slate-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-3">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-red-500">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </span>
                     Tasks by Priority
                   </h3>
                   <div className="space-y-4">
                     {analytics.priorityStats.map((stat) => {
-                      const priorityTasks = filteredTasks.filter((t) => t.priority === stat._id);
+                      const priorityTasks = filteredTasks.filter(
+                        (t) => t.priority === stat._id
+                      );
                       const percentage =
                         analytics.overview.totalTasks > 0
-                          ? ((stat.count / analytics.overview.totalTasks) * 100).toFixed(1)
+                          ? (
+                              (stat.count / analytics.overview.totalTasks) *
+                              100
+                            ).toFixed(1)
                           : "0";
                       return (
-                        <div key={stat._id} className="border-b border-gray-100 pb-3 last:border-0">
+                        <div
+                          key={stat._id}
+                          className="border-b border-gray-100 pb-3 last:border-0"
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center flex-1">
                               <span
@@ -391,15 +432,19 @@ export default function Dashboard() {
                               {stat.count} ({percentage}%)
                             </span>
                           </div>
-                          {priorityTasks.length > 0 && priorityTasks.length <= 3 && (
-                            <div className="ml-6 mt-1 space-y-1">
-                              {priorityTasks.slice(0, 3).map((task) => (
-                                <div key={task._id} className="text-xs text-gray-600 truncate">
-                                  • {task.title}
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                          {priorityTasks.length > 0 &&
+                            priorityTasks.length <= 3 && (
+                              <div className="ml-6 mt-1 space-y-1">
+                                {priorityTasks.slice(0, 3).map((task) => (
+                                  <div
+                                    key={task._id}
+                                    className="text-xs text-gray-600 truncate"
+                                  >
+                                    • {task.title}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                         </div>
                       );
                     })}
@@ -407,7 +452,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Project Status with Details */}
-                <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <div className="bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-3xl shadow-xl p-8 border border-slate-200">
                   <h3 className="text-xl font-normal text-black mb-6 flex items-center">
                     <div className="w-8 h-8 bg-gradient-to-br from-emerald-700 to-teal-700 rounded-lg flex items-center justify-center mr-3">
                       <svg
@@ -428,13 +473,21 @@ export default function Dashboard() {
                   </h3>
                   <div className="space-y-4">
                     {analytics.projectStats.map((stat) => {
-                      const statusProjects = filteredProjects.filter((p) => p.status === stat._id);
+                      const statusProjects = filteredProjects.filter(
+                        (p) => p.status === stat._id
+                      );
                       const percentage =
                         analytics.overview.totalProjects > 0
-                          ? ((stat.count / analytics.overview.totalProjects) * 100).toFixed(1)
+                          ? (
+                              (stat.count / analytics.overview.totalProjects) *
+                              100
+                            ).toFixed(1)
                           : "0";
                       return (
-                        <div key={stat._id} className="border-b border-gray-100 pb-3 last:border-0">
+                        <div
+                          key={stat._id}
+                          className="border-b border-gray-100 pb-3 last:border-0"
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center flex-1">
                               <span
@@ -450,15 +503,19 @@ export default function Dashboard() {
                               {stat.count} ({percentage}%)
                             </span>
                           </div>
-                          {statusProjects.length > 0 && statusProjects.length <= 3 && (
-                            <div className="ml-6 mt-1 space-y-1">
-                              {statusProjects.slice(0, 3).map((project) => (
-                                <div key={project._id} className="text-xs text-gray-600 truncate">
-                                  • {project.title}
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                          {statusProjects.length > 0 &&
+                            statusProjects.length <= 3 && (
+                              <div className="ml-6 mt-1 space-y-1">
+                                {statusProjects.slice(0, 3).map((project) => (
+                                  <div
+                                    key={project._id}
+                                    className="text-xs text-gray-600 truncate"
+                                  >
+                                    • {project.title}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                         </div>
                       );
                     })}
@@ -560,14 +617,16 @@ export default function Dashboard() {
               )}
             </>
           )}
-            {/* Analytics Line Chart Section */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8 p-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">Analytics Overview</h3>
-              <div className="w-full h-[320px]">
-                {/* Line chart for analytics */}
-                <DashboardLineChart />
-              </div>
+          {/* Analytics Line Chart Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8 p-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">
+              Analytics Overview
+            </h3>
+            <div className="w-full h-[320px]">
+              {/* Line chart for analytics */}
+              <DashboardLineChart />
             </div>
+          </div>
         </main>
       </div>
     </AppLayout>

@@ -59,34 +59,38 @@ export default function ProjectsPage() {
 
   // Role-based access control functions
   const canCreateProject = user?.role === "admin";
-  
+
   const canEditProject = (project: Project) => {
     if (!user) return false;
     if (user.role === "admin") return true;
     // Team members can edit project status if they're assigned to the project
     if (user.role === "team_member") {
-      const teamMemberIds = Array.isArray(project.teamMembers) 
-        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+      const teamMemberIds = Array.isArray(project.teamMembers)
+        ? project.teamMembers.map((tm) =>
+            typeof tm === "string" ? tm : tm._id
+          )
         : [];
       return teamMemberIds.includes(user._id);
     }
     return false;
   };
-  
+
   const canDeleteProject = (project: Project) => {
     if (!user) return false;
     if (user.role === "admin") return true;
     // Team members cannot delete projects
     return false;
   };
-  
+
   const canViewProject = (project: Project) => {
     if (!user) return false;
     if (user.role === "admin") return true;
     // Team members can only view projects they're assigned to
     if (user.role === "team_member") {
-      const teamMemberIds = Array.isArray(project.teamMembers) 
-        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+      const teamMemberIds = Array.isArray(project.teamMembers)
+        ? project.teamMembers.map((tm) =>
+            typeof tm === "string" ? tm : tm._id
+          )
         : [];
       return teamMemberIds.includes(user._id);
     }
@@ -104,7 +108,8 @@ export default function ProjectsPage() {
       const response = await apiClient.getProjects(filters);
       console.log("Projects API response:", response);
       if (response.success && response.data) {
-        const projectsData = response.data.projects || response.data.items || [];
+        const projectsData =
+          response.data.projects || response.data.items || [];
         console.log("Projects data:", projectsData);
         setProjects(projectsData);
       } else {
@@ -138,7 +143,10 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleUpdateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
+  const handleUpdateProjectStatus = async (
+    projectId: string,
+    newStatus: ProjectStatus
+  ) => {
     try {
       await apiClient.updateProject(projectId, { status: newStatus });
       toast.success("Project status updated successfully");
@@ -154,7 +162,7 @@ export default function ProjectsPage() {
     if (!canViewProject(project)) {
       return false;
     }
-    
+
     const matchesSearch =
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -179,23 +187,22 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout>
-      <div className="bg-gray-50">
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-                <p className="text-sm text-gray-600">
-                  {user.role === "admin" ? "Manage your team projects" : "View your assigned projects"}
-                </p>
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-gray-900 min-h-screen">
+        <header className="bg-gradient-to-r from-slate-900 via-indigo-950 to-gray-900 shadow-lg border-b border-slate-800/60">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="flex justify-between items-center h-20">
+              <div className="flex flex-col justify-center">
+                <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 drop-shadow-lg tracking-tight">
+                  Projects
+                </h1>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-4">
                 {canCreateProject && (
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-xl shadow-md border border-indigo-400/30 flex items-center gap-2 font-bold hover:scale-105 transition-transform"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-5 h-5" />
                     <span>New Project</span>
                   </button>
                 )}
@@ -204,95 +211,14 @@ export default function ProjectsPage() {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Status Tabs */}
-          <div className="bg-white rounded-lg shadow-sm mb-6 border border-gray-200">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-4 px-6" aria-label="Tabs">
-                <button
-                  onClick={() => {
-                    setSelectedTab("all");
-                    setStatusFilter("");
-                  }}
-                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
-                    selectedTab === "all"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  All Projects ({filteredProjects.length})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTab(ProjectStatus.PLANNING);
-                    setStatusFilter(ProjectStatus.PLANNING);
-                  }}
-                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
-                    selectedTab === ProjectStatus.PLANNING
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Planning ({filteredProjects.filter(p => p.status === ProjectStatus.PLANNING).length})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTab(ProjectStatus.IN_PROGRESS);
-                    setStatusFilter(ProjectStatus.IN_PROGRESS);
-                  }}
-                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
-                    selectedTab === ProjectStatus.IN_PROGRESS
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  In Progress ({filteredProjects.filter(p => p.status === ProjectStatus.IN_PROGRESS).length})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTab(ProjectStatus.TESTING);
-                    setStatusFilter(ProjectStatus.TESTING);
-                  }}
-                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
-                    selectedTab === ProjectStatus.TESTING
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Testing ({filteredProjects.filter(p => p.status === ProjectStatus.TESTING).length})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTab(ProjectStatus.COMPLETED);
-                    setStatusFilter(ProjectStatus.COMPLETED);
-                  }}
-                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
-                    selectedTab === ProjectStatus.COMPLETED
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Completed ({filteredProjects.filter(p => p.status === ProjectStatus.COMPLETED).length})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTab(ProjectStatus.ON_HOLD);
-                    setStatusFilter(ProjectStatus.ON_HOLD);
-                  }}
-                  className={`py-4 px-3 border-b-2 font-medium text-sm ${
-                    selectedTab === ProjectStatus.ON_HOLD
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  On Hold ({filteredProjects.filter(p => p.status === ProjectStatus.ON_HOLD).length})
-                </button>
-              </nav>
-            </div>
-          </div>
-
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ">
+          <p className="text-2xl text-slate-300 mt-1 mb-10 font-medium drop-shadow-sm">
+            {user.role === "admin"
+              ? "Manage your team projects"
+              : "View your assigned projects"}
+          </p>
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
+          <div className=" rounded-lg p-6 mb-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-gray-900 border-b border-slate-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 flex-1">
                 <div className="relative flex-1 max-w-md">
@@ -308,7 +234,7 @@ export default function ProjectsPage() {
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-5 pr-10 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none bg-white relative"
                 >
                   <option value="">All Priority</option>
                   <option value="low">Low</option>
@@ -319,7 +245,7 @@ export default function ProjectsPage() {
               </div>
               <button
                 onClick={loadProjects}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="flex items-center space-x-2 px-4 py-2 text-slate-200 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <Filter className="w-4 h-4" />
                 <span>Refresh</span>
@@ -355,43 +281,39 @@ export default function ProjectsPage() {
               {filteredProjects.map((project) => (
                 <div
                   key={project._id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         {project.title}
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3 mb-2">
                         {canEditProject(project) ? (
-                          <select
-                            value={project.status}
-                            onChange={(e) => handleUpdateProjectStatus(project._id, e.target.value as ProjectStatus)}
-                            className={`px-2 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-blue-500 ${getStatusColor(
-                              project.status
-                            )}`}
-                            title="Update project status"
-                          >
-                            <option value="planning">Planning</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="testing">Testing</option>
-                            <option value="completed">Completed</option>
-                            <option value="on_hold">On Hold</option>
-                          </select>
+                          <div className="relative">
+                            <select
+                              value={project.status}
+                              onChange={(e) => handleUpdateProjectStatus(project._id, e.target.value as ProjectStatus)}
+                              className={`pl-3 pr-8 py-1 rounded-full text-xs font-semibold border-0 focus:ring-2 focus:ring-blue-500 ${getStatusColor(project.status)} appearance-none bg-gray-100 text-gray-900`}
+                              title="Update project status"
+                              style={{ minWidth: '110px' }}
+                            >
+                              <option value="planning">Planning</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="testing">Testing</option>
+                              <option value="completed">Completed</option>
+                              <option value="on_hold">On Hold</option>
+                            </select>
+                            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6"/></svg>
+                            </span>
+                          </div>
                         ) : (
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              project.status
-                            )}`}
-                          >
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)} bg-gray-100 text-gray-900`}>
                             {enumToDisplayText(project.status)}
                           </span>
                         )}
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                            project.priority
-                          )}`}
-                        >
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(project.priority)} bg-gray-100 text-gray-900`} style={{ minWidth: '70px', textAlign: 'center' }}>
                           {enumToDisplayText(project.priority)}
                         </span>
                       </div>
@@ -403,7 +325,11 @@ export default function ProjectsPage() {
                             router.push(`/projects/${project._id}` as any)
                           }
                           className="p-1 text-gray-400 hover:text-blue-600"
-                          title={canEditProject(project) ? "Edit Project" : "View Project"}
+                          title={
+                            canEditProject(project)
+                              ? "Edit Project"
+                              : "View Project"
+                          }
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -430,7 +356,9 @@ export default function ProjectsPage() {
                         <Calendar className="w-4 h-4" />
                         <span>Deadline:</span>
                       </div>
-                      <span className="font-medium text-gray-900">{formatDate(project.deadline)}</span>
+                      <span className="font-medium text-gray-900">
+                        {formatDate(project.deadline)}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-gray-600">
                       <div className="flex items-center space-x-2">
@@ -444,13 +372,17 @@ export default function ProjectsPage() {
                     {project.estimatedHours && (
                       <div className="flex items-center justify-between text-gray-600">
                         <span>Estimated Hours:</span>
-                        <span className="font-medium text-gray-900">{project.estimatedHours}h</span>
+                        <span className="font-medium text-gray-900">
+                          {project.estimatedHours}h
+                        </span>
                       </div>
                     )}
                     {project.actualHours && (
                       <div className="flex items-center justify-between text-gray-600">
                         <span>Actual Hours:</span>
-                        <span className="font-medium text-gray-900">{project.actualHours}h</span>
+                        <span className="font-medium text-gray-900">
+                          {project.actualHours}h
+                        </span>
                       </div>
                     )}
                   </div>
@@ -477,7 +409,10 @@ export default function ProjectsPage() {
                     {project.tags && project.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {project.tags.slice(0, 3).map((tag, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -566,7 +501,10 @@ function CreateProjectModal({
         managerId,
         teamMembers: selectedTeamMembers,
         estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
-        tags: tags.split(",").map(t => t.trim()).filter(Boolean),
+        tags: tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
       });
       toast.success("Project created successfully");
       onSuccess();
@@ -584,7 +522,9 @@ function CreateProjectModal({
         {/* Modal Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Create New Project</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Create New Project
+            </h2>
             <button
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
@@ -611,7 +551,9 @@ function CreateProjectModal({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Description
+            </label>
             <textarea
               placeholder="Describe the project in detail..."
               value={description}
@@ -636,7 +578,9 @@ function CreateProjectModal({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Priority</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Priority
+              </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as ProjectPriority)}
@@ -652,7 +596,9 @@ function CreateProjectModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Initial Status</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Initial Status
+              </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as ProjectStatus)}
@@ -667,7 +613,9 @@ function CreateProjectModal({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Tags</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Tags
+              </label>
               <input
                 type="text"
                 placeholder="Enter tags separated by commas..."
@@ -679,30 +627,44 @@ function CreateProjectModal({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Team Members</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Assign Team Members
+            </label>
             <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
-              {users.filter(u => u.role !== 'admin').map(u => (
-                <label key={u._id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    value={u._id}
-                    checked={selectedTeamMembers.includes(u._id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedTeamMembers([...selectedTeamMembers, u._id]);
-                      } else {
-                        setSelectedTeamMembers(selectedTeamMembers.filter(id => id !== u._id));
-                      }
-                    }}
-                    className="text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {u.firstName} {u.lastName} ({u.email})
-                  </span>
-                </label>
-              ))}
-              {users.filter(u => u.role !== 'admin').length === 0 && (
-                <p className="text-sm text-gray-500 p-2">No team members available</p>
+              {users
+                .filter((u) => u.role !== "admin")
+                .map((u) => (
+                  <label
+                    key={u._id}
+                    className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      value={u._id}
+                      checked={selectedTeamMembers.includes(u._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedTeamMembers([
+                            ...selectedTeamMembers,
+                            u._id,
+                          ]);
+                        } else {
+                          setSelectedTeamMembers(
+                            selectedTeamMembers.filter((id) => id !== u._id)
+                          );
+                        }
+                      }}
+                      className="text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">
+                      {u.firstName} {u.lastName} ({u.email})
+                    </span>
+                  </label>
+                ))}
+              {users.filter((u) => u.role !== "admin").length === 0 && (
+                <p className="text-sm text-gray-500 p-2">
+                  No team members available
+                </p>
               )}
             </div>
           </div>
