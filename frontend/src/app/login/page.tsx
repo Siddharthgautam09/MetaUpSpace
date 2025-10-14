@@ -64,26 +64,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-100 to-primary-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <UserPlus className="w-6 h-6 text-white" />
+          <div className="w-14 h-14 bg-primary-600 rounded-xl flex items-center justify-center shadow-lg">
+            <UserPlus className="w-7 h-7 text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-primary-900">
           Sign in to your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-secondary-600">
           Enterprise Task Management System
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-secondary-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
+              <label htmlFor="email" className="block text-sm font-medium leading-6 text-primary-900">
                 Email address
               </label>
               <div className="mt-2 relative">
@@ -95,15 +95,15 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  className="block w-full rounded-lg border border-secondary-300 py-2 pl-10 text-primary-900 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder:text-secondary-400 sm:text-sm sm:leading-6"
                   placeholder="you@example.com"
                 />
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary-400" />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+              <label htmlFor="password" className="block text-sm font-medium leading-6 text-primary-900">
                 Password
               </label>
               <div className="mt-2 relative">
@@ -115,19 +115,19 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  className="block w-full rounded-lg border border-secondary-300 py-2 pl-10 pr-10 text-primary-900 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder:text-secondary-400 sm:text-sm sm:leading-6"
                   placeholder="••••••••"
                 />
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary-400" />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-secondary-400 hover:text-primary-600" />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-secondary-400 hover:text-primary-600" />
                   )}
                 </button>
               </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary w-full py-2 text-sm font-semibold leading-6"
               >
                 {submitting ? 'Please wait...' : 'Sign in'}
               </button>
@@ -147,7 +147,7 @@ export default function LoginPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-secondary-200" />
               </div>
             </div>
           </div>
