@@ -62,21 +62,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-gray-900 text-slate-100">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
-          <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">Task Manager</h1>
+        <div className="fixed inset-0 bg-black bg-opacity-60" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-gradient-to-br from-slate-900 via-indigo-950 to-gray-900 shadow-2xl rounded-r-3xl">
+          <div className="flex h-20 items-center justify-between px-6 border-b border-slate-800/60">
+            <span className="font-bold text-xl text-indigo-300 tracking-wide flex items-center gap-2">
+              <LayoutDashboard className="w-7 h-7 text-indigo-400" />
+              MetaUpSpace
+            </span>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-slate-400 hover:text-indigo-300"
             >
-              <X className="h-6 w-6" />
+              <X className="h-7 w-7" />
             </button>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="flex-1 space-y-2 px-4 py-6">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -88,15 +91,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     router.push(item.href as any);
                     setSidebarOpen(false);
                   }}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                  className={`group flex items-center px-3 py-2 text-base font-semibold rounded-xl transition-all duration-200 ${
                     item.current
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-indigo-700/80 text-white shadow-lg'
+                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-indigo-300'
                   }`}
                 >
                   <Icon
-                    className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                      item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                    className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                      item.current ? 'text-indigo-300' : 'text-slate-500 group-hover:text-indigo-300'
                     }`}
                   />
                   {item.name}
@@ -104,18 +107,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
               );
             })}
           </nav>
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-slate-800/60 p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
+                <div className="h-10 w-10 rounded-full bg-indigo-700 flex items-center justify-center shadow-lg">
+                  <span className="text-base font-bold text-white">
                     {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                   </span>
                 </div>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">{user.firstName} {user.lastName}</p>
-                <p className="text-xs text-gray-500">{user.email}</p>
+                <p className="text-base font-semibold text-indigo-100">{user.firstName} {user.lastName}</p>
+                <p className="text-xs text-slate-400">{user.email}</p>
               </div>
             </div>
             <div className="mt-4 space-y-2">
@@ -142,12 +145,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
-          <div className="flex h-16 items-center px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">Task Manager</h1>
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
+        <div className="flex flex-col flex-grow bg-gradient-to-br from-slate-900 via-indigo-950 to-gray-900 border-r border-slate-800/60 rounded-r-3xl">
+          <div className="flex h-20 items-center px-6 border-b border-slate-800/60">
+            <span className="font-bold text-xl text-indigo-300 tracking-wide flex items-center gap-2">
+              <LayoutDashboard className="w-7 h-7 text-indigo-400" />
+              MetaUpSpace
+            </span>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="flex-1 space-y-2 px-4 py-6">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -158,15 +164,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     e.preventDefault();
                     router.push(item.href as any);
                   }}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                  className={`group flex items-center px-3 py-2 text-base font-semibold rounded-xl transition-all duration-200 ${
                     item.current
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-indigo-700/80 text-white shadow-lg'
+                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-indigo-300'
                   }`}
                 >
                   <Icon
-                    className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                      item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                    className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                      item.current ? 'text-indigo-300' : 'text-slate-500 group-hover:text-indigo-300'
                     }`}
                   />
                   {item.name}
@@ -174,18 +180,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
               );
             })}
           </nav>
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-slate-800/60 p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
+                <div className="h-10 w-10 rounded-full bg-indigo-700 flex items-center justify-center shadow-lg">
+                  <span className="text-base font-bold text-white">
                     {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                   </span>
                 </div>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">{user.firstName} {user.lastName}</p>
-                <p className="text-xs text-gray-500">{user.email}</p>
+                <p className="text-base font-semibold text-indigo-100">{user.firstName} {user.lastName}</p>
+                <p className="text-xs text-slate-400">{user.email}</p>
               </div>
             </div>
             <div className="mt-4 space-y-2">
@@ -209,21 +215,44 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+  <div className="lg:pl-72">
         {/* Mobile menu button */}
         <div className="sticky top-0 z-40 lg:hidden">
-          <div className="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6">
+          <div className="flex h-20 items-center gap-x-4 border-b border-slate-800/60 bg-gradient-to-r from-slate-900 via-indigo-950 to-gray-900 px-6 shadow-lg sm:gap-x-6">
             <button
               type="button"
-              className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+              className="-m-2.5 p-2.5 text-slate-300 lg:hidden"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-7 w-7" />
             </button>
-            <div className="h-6 w-px bg-gray-200 lg:hidden" />
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="h-7 w-px bg-slate-700 lg:hidden" />
+            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 items-center">
               <div className="flex items-center">
-                <h1 className="text-lg font-semibold text-gray-900">Task Manager</h1>
+                <span className="font-bold text-xl text-indigo-300 tracking-wide flex items-center gap-2">
+                  <LayoutDashboard className="w-7 h-7 text-indigo-400" />
+                  MetaUpSpace
+                </span>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full max-w-xs px-4 py-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-800 shadow"
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <button className="rounded-full bg-slate-800 p-2 hover:bg-indigo-900 transition">
+                  <BarChart3 className="w-5 h-5 text-slate-300" />
+                </button>
+                <button className="rounded-full bg-slate-800 p-2 hover:bg-indigo-900 transition">
+                  <User className="w-5 h-5 text-slate-300" />
+                </button>
+                <div className="h-10 w-10 rounded-full bg-indigo-700 flex items-center justify-center shadow-lg">
+                  <span className="text-base font-bold text-white">
+                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

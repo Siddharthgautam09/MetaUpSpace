@@ -55,18 +55,7 @@ class App {
       allowedHeaders: ['Content-Type', 'Authorization'],
     }));
 
-    // Rate limiting
-    const limiter = rateLimit({
-      windowMs: config.security.rateLimitWindowMs,
-      max: config.security.rateLimitMaxRequests,
-      message: {
-        success: false,
-        message: 'Too many requests from this IP, please try again later.',
-      },
-      standardHeaders: true,
-      legacyHeaders: false,
-    });
-    this.app.use(limiter);
+    // Rate limiting removed
 
     // Compression
     this.app.use(compression());
