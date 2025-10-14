@@ -234,7 +234,7 @@ export default function ProjectsPage() {
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="pl-5 pr-10 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none bg-white relative"
+                  className="pl-5 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none bg-white relative"
                 >
                   <option value="">All Priority</option>
                   <option value="low">Low</option>
@@ -281,22 +281,28 @@ export default function ProjectsPage() {
               {filteredProjects.map((project) => (
                 <div
                   key={project._id}
-                  className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                  className="bg-white rounded-2xl shadow-lg border border-gray-200 p-7 hover:shadow-xl transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between min-h-[340px]"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
                         {project.title}
                       </h3>
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mt-1">
                         {canEditProject(project) ? (
                           <div className="relative">
                             <select
                               value={project.status}
-                              onChange={(e) => handleUpdateProjectStatus(project._id, e.target.value as ProjectStatus)}
-                              className={`pl-3 pr-8 py-1 rounded-full text-xs font-semibold border-0 focus:ring-2 focus:ring-blue-500 ${getStatusColor(project.status)} appearance-none bg-gray-100 text-gray-900`}
+                              onChange={(e) =>
+                                handleUpdateProjectStatus(
+                                  project._id,
+                                  e.target.value as ProjectStatus
+                                )
+                              }
+                              className={`px-3 pr-8 py-1.5 rounded-full text-xs font-semibold border-0 focus:ring-2 focus:ring-blue-500 transition-all appearance-none ${getStatusColor(
+                                project.status
+                              )}`}
                               title="Update project status"
-                              style={{ minWidth: '110px' }}
                             >
                               <option value="planning">Planning</option>
                               <option value="in_progress">In Progress</option>
@@ -304,16 +310,23 @@ export default function ProjectsPage() {
                               <option value="completed">Completed</option>
                               <option value="on_hold">On Hold</option>
                             </select>
-                            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">
-                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6"/></svg>
-                            </span>
+                            {/* Custom arrow for select */}
+                            <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M7 8l3 3 3-3" /></svg>
                           </div>
                         ) : (
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)} bg-gray-100 text-gray-900`}>
+                          <span
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(
+                              project.status
+                            )}`}
+                          >
                             {enumToDisplayText(project.status)}
                           </span>
                         )}
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(project.priority)} bg-gray-100 text-gray-900`} style={{ minWidth: '70px', textAlign: 'center' }}>
+                        <span
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold ${getPriorityColor(
+                            project.priority
+                          )} text-gray-800 ml-1`}
+                        >
                           {enumToDisplayText(project.priority)}
                         </span>
                       </div>
@@ -346,7 +359,7 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  <p className="text-gray-600 text-base mb-4 line-clamp-3 font-medium">
                     {project.description}
                   </p>
 

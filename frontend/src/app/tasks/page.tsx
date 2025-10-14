@@ -1,15 +1,8 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import {
-  Task,
-  TaskFilters,
-  TaskStatus,
-  TaskPriority,
-  Project,
-} from "@/types";
+import { Task, TaskFilters, TaskStatus, TaskPriority, Project } from "@/types";
 import apiClient from "@/lib/api";
 import {
   formatDate,
@@ -70,8 +63,10 @@ export default function TasksPage() {
     if (!project) return false;
     // Team members can create tasks only in projects they're assigned to
     if (user.role === "team_member") {
-      const teamMemberIds = Array.isArray(project.teamMembers) 
-        ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+      const teamMemberIds = Array.isArray(project.teamMembers)
+        ? project.teamMembers.map((tm) =>
+            typeof tm === "string" ? tm : tm._id
+          )
         : [];
       return teamMemberIds.includes(user._id);
     }
@@ -83,14 +78,28 @@ export default function TasksPage() {
     if (user.role === "admin") return true;
     // Team members can edit tasks assigned to them, created by them, or in projects they're assigned to
     if (user.role === "team_member") {
-      const assignedToId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
-      const createdById = typeof task.createdBy === 'string' ? task.createdBy : task.createdBy?._id;
+      const assignedToId =
+        typeof task.assignedTo === "string"
+          ? task.assignedTo
+          : task.assignedTo?._id;
+      const createdById =
+        typeof task.createdBy === "string"
+          ? task.createdBy
+          : task.createdBy?._id;
       if (assignedToId === user._id || createdById === user._id) return true;
       // Check if user is in the project team
-      const project = projects.find(p => p._id === (typeof task.projectId === 'string' ? task.projectId : task.projectId?._id));
+      const project = projects.find(
+        (p) =>
+          p._id ===
+          (typeof task.projectId === "string"
+            ? task.projectId
+            : task.projectId?._id)
+      );
       if (project) {
-        const teamMemberIds = Array.isArray(project.teamMembers) 
-          ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+        const teamMemberIds = Array.isArray(project.teamMembers)
+          ? project.teamMembers.map((tm) =>
+              typeof tm === "string" ? tm : tm._id
+            )
           : [];
         return teamMemberIds.includes(user._id);
       }
@@ -108,14 +117,25 @@ export default function TasksPage() {
     if (user.role === "admin") return true;
     // Team members can view tasks assigned to them or in projects they're assigned to
     if (user.role === "team_member") {
-      const assignedToId = typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+      const assignedToId =
+        typeof task.assignedTo === "string"
+          ? task.assignedTo
+          : task.assignedTo?._id;
       if (assignedToId === user._id) return true;
-      
+
       // Check if user is in the project team
-      const project = projects.find(p => p._id === (typeof task.projectId === 'string' ? task.projectId : task.projectId?._id));
+      const project = projects.find(
+        (p) =>
+          p._id ===
+          (typeof task.projectId === "string"
+            ? task.projectId
+            : task.projectId?._id)
+      );
       if (project) {
-        const teamMemberIds = Array.isArray(project.teamMembers) 
-          ? project.teamMembers.map(tm => typeof tm === 'string' ? tm : tm._id)
+        const teamMemberIds = Array.isArray(project.teamMembers)
+          ? project.teamMembers.map((tm) =>
+              typeof tm === "string" ? tm : tm._id
+            )
           : [];
         return teamMemberIds.includes(user._id);
       }
@@ -136,8 +156,7 @@ export default function TasksPage() {
       if (response.success && response.data) {
         const tasksData = response.data.tasks || response.data.items || [];
         setTasks(tasksData);
-      }
-      else setTasks([]);
+      } else setTasks([]);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load tasks");
@@ -151,10 +170,10 @@ export default function TasksPage() {
     try {
       const response = await apiClient.getProjects({});
       if (response.success && response.data) {
-        const projectsData = response.data.projects || response.data.items || [];
+        const projectsData =
+          response.data.projects || response.data.items || [];
         setProjects(projectsData);
-      }
-      else setProjects([]);
+      } else setProjects([]);
     } catch (error) {
       console.error(error);
       setProjects([]);
@@ -176,7 +195,9 @@ export default function TasksPage() {
   const updateTaskStatus = async (taskId: string, newStatus: TaskStatus) => {
     try {
       console.log(`Updating task ${taskId} to status: ${newStatus}`);
-      const response = await apiClient.updateTask(taskId, { status: newStatus });
+      const response = await apiClient.updateTask(taskId, {
+        status: newStatus,
+      });
       console.log("Update response:", response);
       toast.success("Task status updated");
       loadTasks();
@@ -191,7 +212,7 @@ export default function TasksPage() {
     if (!canViewTask(task)) {
       return false;
     }
-    
+
     const matchesSearch =
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -202,14 +223,19 @@ export default function TasksPage() {
       (typeof task.projectId === "object"
         ? task.projectId._id === projectFilter
         : task.projectId === projectFilter);
-    
+
     return matchesSearch && matchesStatus && matchesPriority && matchesProject;
   });
 
   const isOverdue = (dueDate: string) =>
-    new Date(dueDate) < new Date() && !["completed", "cancelled"].includes(statusFilter);
+    new Date(dueDate) < new Date() &&
+    !["completed", "cancelled"].includes(statusFilter);
 
-  const activeFiltersCount = [statusFilter, priorityFilter, projectFilter].filter(Boolean).length;
+  const activeFiltersCount = [
+    statusFilter,
+    priorityFilter,
+    projectFilter,
+  ].filter(Boolean).length;
 
   const clearFilters = () => {
     setStatusFilter("");
@@ -229,20 +255,51 @@ export default function TasksPage() {
   if (!user) return null;
 
   const kanbanColumns = [
-    { status: "todo", title: "To Do", color: "bg-slate-50 border-slate-200", count: 0 },
-    { status: "in_progress", title: "In Progress", color: "bg-blue-50 border-blue-200", count: 0 },
-    { status: "review", title: "In Review", color: "bg-amber-50 border-amber-200", count: 0 },
-    { status: "testing", title: "Testing", color: "bg-purple-50 border-purple-200", count: 0 },
-    { status: "completed", title: "Completed", color: "bg-emerald-50 border-emerald-200", count: 0 },
-    { status: "blocked", title: "Blocked", color: "bg-rose-50 border-rose-200", count: 0 },
+    {
+      status: "todo",
+      title: "To Do",
+      color: "bg-slate-50 border-slate-200",
+      count: 0,
+    },
+    {
+      status: "in_progress",
+      title: "In Progress",
+      color: "bg-blue-50 border-blue-200",
+      count: 0,
+    },
+    {
+      status: "review",
+      title: "In Review",
+      color: "bg-amber-50 border-amber-200",
+      count: 0,
+    },
+    {
+      status: "testing",
+      title: "Testing",
+      color: "bg-purple-50 border-purple-200",
+      count: 0,
+    },
+    {
+      status: "completed",
+      title: "Completed",
+      color: "bg-emerald-50 border-emerald-200",
+      count: 0,
+    },
+    {
+      status: "blocked",
+      title: "Blocked",
+      color: "bg-rose-50 border-rose-200",
+      count: 0,
+    },
   ];
 
   const getTaskStats = () => {
     const stats = {
       total: filteredTasks.length,
-      completed: filteredTasks.filter(t => t.status === "completed").length,
-      inProgress: filteredTasks.filter(t => t.status === "in_progress").length,
-      overdue: filteredTasks.filter(t => isOverdue(t.dueDate)).length,
+      completed: filteredTasks.filter((t) => t.status === "completed").length,
+      inProgress: filteredTasks.filter((t) => t.status === "in_progress")
+        .length,
+      overdue: filteredTasks.filter((t) => isOverdue(t.dueDate)).length,
     };
     return stats;
   };
@@ -251,14 +308,15 @@ export default function TasksPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-gray-900 min-h-screen">
         {/* Header with Stats */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <header className="bg-gradient-to-r from-slate-900 via-indigo-950 to-gray-900 shadow-lg border-b border-slate-800/60">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Tasks</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage and track your team's work</p>
+                <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 drop-shadow-lg tracking-tight">
+                  Tasks
+                </h1>
               </div>
               {user?.role === "admin" && (
                 <button
@@ -270,104 +328,46 @@ export default function TasksPage() {
                 </button>
               )}
             </div>
-            <div className="flex gap-6 mt-4">
-              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 flex-1">
-                <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Total Tasks</div>
-                <div className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</div>
-              </div>
-              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200 flex-1">
-                <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Completed</div>
-                <div className="text-2xl font-bold text-emerald-900 mt-1">{stats.completed}</div>
-              </div>
-              <div className="bg-amber-50 rounded-lg p-3 border border-amber-200 flex-1">
-                <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">In Progress</div>
-                <div className="text-2xl font-bold text-amber-900 mt-1">{stats.inProgress}</div>
-              </div>
-              <div className="bg-rose-50 rounded-lg p-3 border border-rose-200 flex-1">
-                <div className="text-xs font-medium text-rose-700 uppercase tracking-wide">Overdue</div>
-                <div className="text-2xl font-bold text-rose-900 mt-1">{stats.overdue}</div>
-              </div>
-            </div>
           </div>
         </header>
 
         {/* Toolbar and Filters */}
         <main className="max-w-7xl mx-auto px-6 py-6">
-          {/* Status Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-2 px-4" aria-label="Tabs">
-                <button
-                  onClick={() => setStatusFilter("")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === ""
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  All Tasks ({tasks.length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter("todo")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === "todo"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  To Do ({tasks.filter(t => t.status === "todo").length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter("in_progress")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === "in_progress"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  In Progress ({tasks.filter(t => t.status === "in_progress").length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter("review")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === "review"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Review ({tasks.filter(t => t.status === "review").length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter("testing")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === "testing"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Testing ({tasks.filter(t => t.status === "testing").length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter("completed")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === "completed"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Completed ({tasks.filter(t => t.status === "completed").length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter("blocked")}
-                  className={`py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    statusFilter === "blocked"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Blocked ({tasks.filter(t => t.status === "blocked").length})
-                </button>
-              </nav>
+                          <p className="text-2xl text-slate-200 mt-1 mb-2">
+                  Manage and track your work
+                </p>
+          <div className="flex gap-6 mt-4 mb-8">
+            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 flex-1">
+              <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">
+                Total Tasks
+              </div>
+              <div className="text-2xl font-bold text-blue-900 mt-1">
+                {stats.total}
+              </div>
+            </div>
+            <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200 flex-1">
+              <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">
+                Completed
+              </div>
+              <div className="text-2xl font-bold text-emerald-900 mt-1">
+                {stats.completed}
+              </div>
+            </div>
+            <div className="bg-amber-50 rounded-lg p-3 border border-amber-200 flex-1">
+              <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">
+                In Progress
+              </div>
+              <div className="text-2xl font-bold text-amber-900 mt-1">
+                {stats.inProgress}
+              </div>
+            </div>
+            <div className="bg-rose-50 rounded-lg p-3 border border-rose-200 flex-1">
+              <div className="text-xs font-medium text-rose-700 uppercase tracking-wide">
+                Overdue
+              </div>
+              <div className="text-2xl font-bold text-rose-900 mt-1">
+                {stats.overdue}
+              </div>
             </div>
           </div>
 
@@ -388,12 +388,18 @@ export default function TasksPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${showFilters || activeFiltersCount > 0 ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                  className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-all ${
+                    showFilters || activeFiltersCount > 0
+                      ? "bg-blue-50 border-blue-300 text-blue-700"
+                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
                 >
                   <Filter className="w-4 h-4" />
                   <span>Filters</span>
                   {activeFiltersCount > 0 && (
-                    <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">{activeFiltersCount}</span>
+                    <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                      {activeFiltersCount}
+                    </span>
                   )}
                 </button>
                 <button
@@ -412,9 +418,10 @@ export default function TasksPage() {
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                    className="px-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white text-gray-800 font-semibold placeholder-gray-500"
+                    style={{ minWidth: 140 }}
                   >
-                    <option value="">All Priority</option>
+                    <option value="" className="text-gray-700 font-semibold">All Priority</option>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -423,11 +430,14 @@ export default function TasksPage() {
                   <select
                     value={projectFilter}
                     onChange={(e) => setProjectFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                    className="px-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white text-gray-800 font-semibold placeholder-gray-500"
+                    style={{ minWidth: 140 }}
                   >
-                    <option value="">All Projects</option>
+                    <option value="" className="text-gray-700 font-semibold">All Projects</option>
                     {(projects || []).map((project) => (
-                      <option key={project._id} value={project._id}>{project.title}</option>
+                      <option key={project._id} value={project._id}>
+                        {project.title}
+                      </option>
                     ))}
                   </select>
                   {activeFiltersCount > 0 && (
@@ -450,7 +460,9 @@ export default function TasksPage() {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No tasks found
+              </h3>
               <p className="text-gray-600 mb-6">
                 {user?.role === "admin"
                   ? "Get started by creating your first task or adjust your filters to see existing tasks."
@@ -465,27 +477,25 @@ export default function TasksPage() {
                 </button>
               )}
             </div>
+          ) : viewMode === "list" ? (
+            <TaskListView
+              tasks={filteredTasks}
+              isOverdue={isOverdue}
+              updateTaskStatus={updateTaskStatus}
+              handleDeleteTask={handleDeleteTask}
+              router={router}
+              setShowCreateModal={setShowCreateModal}
+              canEditTask={canEditTask}
+              canDeleteTask={canDeleteTask}
+            />
           ) : (
-            viewMode === "list" ? (
-              <TaskListView
-                tasks={filteredTasks}
-                isOverdue={isOverdue}
-                updateTaskStatus={updateTaskStatus}
-                handleDeleteTask={handleDeleteTask}
-                router={router}
-                setShowCreateModal={setShowCreateModal}
-                canEditTask={canEditTask}
-                canDeleteTask={canDeleteTask}
-              />
-            ) : (
-              <KanbanView
-                columns={kanbanColumns}
-                tasks={filteredTasks}
-                isOverdue={isOverdue}
-                updateTaskStatus={updateTaskStatus}
-                router={router}
-              />
-            )
+            <KanbanView
+              columns={kanbanColumns}
+              tasks={filteredTasks}
+              isOverdue={isOverdue}
+              updateTaskStatus={updateTaskStatus}
+              router={router}
+            />
           )}
 
           {/* Create Task Modal (admin only) */}
@@ -506,7 +516,16 @@ export default function TasksPage() {
 }
 
 // Enhanced Task List View
-function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, router, setShowCreateModal, canEditTask, canDeleteTask }: any) {
+function TaskListView({
+  tasks,
+  isOverdue,
+  updateTaskStatus,
+  handleDeleteTask,
+  router,
+  setShowCreateModal,
+  canEditTask,
+  canDeleteTask,
+}: any) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   if (!tasks.length)
@@ -515,9 +534,12 @@ function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, ro
         <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Clock className="w-10 h-10 text-gray-400" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks found</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          No tasks found
+        </h3>
         <p className="text-gray-500 mb-6 max-w-md mx-auto">
-          Get started by creating your first task or adjust your filters to see existing tasks.
+          Get started by creating your first task or adjust your filters to see
+          existing tasks.
         </p>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -566,50 +588,53 @@ function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, ro
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-1">{task.description}</p>
+                    <p className="text-sm text-gray-600 line-clamp-1">
+                      {task.description}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Status */}
-              <div className="col-span-2">
+              {/* Status & Priority Inline */}
+              <div className="col-span-4 flex items-center gap-3">
                 {canEditTask(task) ? (
-                  <select
-                    value={task.status}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      updateTaskStatus(task._id, e.target.value as TaskStatus);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className={`text-xs font-medium px-3 py-1.5 rounded-full border-2 focus:ring-2 focus:ring-blue-500 transition-all ${getStatusColor(
-                      task.status
-                    )}`}
-                    title="Update task status"
-                  >
-                    <option value="todo">To Do</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="review">In Review</option>
-                    <option value="testing">Testing</option>
-                    <option value="completed">Completed</option>
-                    <option value="blocked">Blocked</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={task.status}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        updateTaskStatus(task._id, e.target.value as TaskStatus);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`text-xs font-semibold px-3 pr-8 py-1.5 rounded-full border-2 focus:ring-2 focus:ring-blue-500 transition-all appearance-none ${getStatusColor(
+                        task.status
+                      )}`}
+                      title="Update task status"
+                      style={{ minWidth: 110 }}
+                    >
+                      <option value="todo">To Do</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="review">In Review</option>
+                      <option value="testing">Testing</option>
+                      <option value="completed">Completed</option>
+                      <option value="blocked">Blocked</option>
+                    </select>
+                    {/* Custom arrow for select */}
+                    <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M7 8l3 3 3-3" /></svg>
+                  </div>
                 ) : (
                   <span
-                    className={`text-xs font-medium px-3 py-1.5 rounded-full ${getStatusColor(
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full ${getStatusColor(
                       task.status
                     )}`}
                   >
                     {enumToDisplayText(task.status)}
                   </span>
                 )}
-              </div>
-
-              {/* Priority */}
-              <div className="col-span-2">
                 <span
-                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getPriorityColor(
+                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getPriorityColor(
                     task.priority
-                  )}`}
+                  )} text-gray-800 ml-1`}
                 >
                   {enumToDisplayText(task.priority)}
                 </span>
@@ -619,39 +644,45 @@ function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, ro
               <div className="col-span-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className={isOverdue(task.dueDate) ? "text-rose-600 font-semibold" : "text-gray-700"}>
+                  <span
+                    className={
+                      isOverdue(task.dueDate)
+                        ? "text-rose-600 font-semibold"
+                        : "text-gray-700"
+                    }
+                  >
                     {formatDate(task.dueDate)}
                   </span>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="col-span-1 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/tasks/${task._id}`);
-                    }}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                    title="Edit"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  {canDeleteTask(task) && (
+                <div className="col-span-1 text-right">
+                  <div className="flex items-center justify-end gap-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteTask(task._id);
+                        router.push(`/tasks/${task._id}`);
                       }}
-                      className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                      title="Delete"
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      title="Edit"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Edit className="w-4 h-4" />
                     </button>
-                  )}
+                    {canDeleteTask(task) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTask(task._id);
+                        }}
+                        className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
             </div>
           </div>
         ))}
@@ -661,7 +692,13 @@ function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, ro
 }
 
 // Enhanced Kanban View
-function KanbanView({ columns, tasks, isOverdue, updateTaskStatus, router }: any) {
+function KanbanView({
+  columns,
+  tasks,
+  isOverdue,
+  updateTaskStatus,
+  router,
+}: any) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 overflow-x-auto pb-4">
       {columns.map((col: any) => {
@@ -669,9 +706,13 @@ function KanbanView({ columns, tasks, isOverdue, updateTaskStatus, router }: any
         return (
           <div key={col.status} className="min-w-[280px] lg:min-w-0">
             {/* Column Header */}
-            <div className={`${col.color} border-2 rounded-lg p-3 mb-3 shadow-sm`}>
+            <div
+              className={`${col.color} border-2 rounded-lg p-3 mb-3 shadow-sm`}
+            >
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 text-sm">{col.title}</h3>
+                <h3 className="font-semibold text-gray-900 text-sm">
+                  {col.title}
+                </h3>
                 <span className="bg-white text-gray-700 text-xs font-bold px-2 py-1 rounded-full">
                   {colTasks.length}
                 </span>
@@ -715,7 +756,9 @@ function KanbanView({ columns, tasks, isOverdue, updateTaskStatus, router }: any
 
                       <div
                         className={`flex items-center gap-1.5 text-xs ${
-                          isOverdue(task.dueDate) ? "text-rose-600 font-semibold" : "text-gray-500"
+                          isOverdue(task.dueDate)
+                            ? "text-rose-600 font-semibold"
+                            : "text-gray-500"
                         }`}
                       >
                         <Calendar className="w-3.5 h-3.5" />
@@ -752,15 +795,15 @@ function CreateTaskModal({ onClose, onSuccess, projects }: any) {
 
     try {
       setIsSubmitting(true);
-      await apiClient.createTask({ 
-        title, 
-        description, 
-        projectId, 
-        priority, 
-        status, 
+      await apiClient.createTask({
+        title,
+        description,
+        projectId,
+        priority,
+        status,
         dueDate,
         tags: [],
-        dependencies: []
+        dependencies: [],
       });
       toast.success("Task created successfully");
       onSuccess();
@@ -805,7 +848,9 @@ function CreateTaskModal({ onClose, onSuccess, projects }: any) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Description
+            </label>
             <textarea
               placeholder="Describe the task in detail..."
               value={description}
@@ -817,7 +862,9 @@ function CreateTaskModal({ onClose, onSuccess, projects }: any) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Project</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Project
+              </label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
@@ -847,7 +894,9 @@ function CreateTaskModal({ onClose, onSuccess, projects }: any) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Priority</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Priority
+              </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as TaskPriority)}
@@ -861,7 +910,9 @@ function CreateTaskModal({ onClose, onSuccess, projects }: any) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Initial Status</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Initial Status
+              </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
