@@ -2282,3 +2282,159 @@
 {
   "service": "task-management-api"
 }
+2025-10-14 13:52:06 [INFO]: ::1 - - [14/Oct/2025:08:22:06 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:07 [INFO]: ::1 - - [14/Oct/2025:08:22:07 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:09 [INFO]: ::1 - - [14/Oct/2025:08:22:09 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:09 [INFO]: ::1 - - [14/Oct/2025:08:22:09 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:12 [INFO]: ::1 - - [14/Oct/2025:08:22:12 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:12 [INFO]: ::1 - - [14/Oct/2025:08:22:12 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:14 [INFO]: ::1 - - [14/Oct/2025:08:22:14 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:14 [INFO]: ::1 - - [14/Oct/2025:08:22:14 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:18 [INFO]: ::1 - - [14/Oct/2025:08:22:18 +0000] "GET /api/projects? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:18 [INFO]: ::1 - - [14/Oct/2025:08:22:18 +0000] "GET /api/projects? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:20 [INFO]: ::1 - - [14/Oct/2025:08:22:20 +0000] "GET /api/tasks? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:20 [INFO]: ::1 - - [14/Oct/2025:08:22:20 +0000] "GET /api/projects? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:20 [INFO]: ::1 - - [14/Oct/2025:08:22:20 +0000] "GET /api/tasks? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:20 [INFO]: ::1 - - [14/Oct/2025:08:22:20 +0000] "GET /api/projects? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:24 [INFO]: ::1 - - [14/Oct/2025:08:22:24 +0000] "GET /api/projects? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:24 [INFO]: ::1 - - [14/Oct/2025:08:22:24 +0000] "GET /api/projects? HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:27 [INFO]: ::1 - - [14/Oct/2025:08:22:27 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:52:28 [INFO]: ::1 - - [14/Oct/2025:08:22:28 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:55:10 [INFO]: ::1 - - [14/Oct/2025:08:25:10 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:55:11 [INFO]: ::1 - - [14/Oct/2025:08:25:11 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:59:55 [INFO]: ::1 - - [14/Oct/2025:08:29:55 +0000] "GET /api/auth/profile HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 13:59:55 [INFO]: ::1 - - [14/Oct/2025:08:29:55 +0000] "GET /api/auth/profile HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:10 [INFO]: ::1 - - [14/Oct/2025:08:31:10 +0000] "GET /api/auth/profile HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:10 [INFO]: ::1 - - [14/Oct/2025:08:31:10 +0000] "GET /api/auth/profile HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:11 [INFO]: ::1 - - [14/Oct/2025:08:31:11 +0000] "GET /api/tasks?limit=100 HTTP/1.1" 200 150 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:11 [INFO]: ::1 - - [14/Oct/2025:08:31:11 +0000] "GET /api/tasks?limit=100 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:11 [INFO]: ::1 - - [14/Oct/2025:08:31:11 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:11 [INFO]: ::1 - - [14/Oct/2025:08:31:11 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:12 [INFO]: ::1 - - [14/Oct/2025:08:31:12 +0000] "GET /api/projects?limit=100 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:12 [INFO]: ::1 - - [14/Oct/2025:08:31:12 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:31 [INFO]: ::1 - - [14/Oct/2025:08:31:31 +0000] "GET /api/auth/profile HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:31 [INFO]: ::1 - - [14/Oct/2025:08:31:31 +0000] "GET /api/auth/profile HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:31 [INFO]: ::1 - - [14/Oct/2025:08:31:31 +0000] "GET /api/tasks?limit=100 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:31 [INFO]: ::1 - - [14/Oct/2025:08:31:31 +0000] "GET /api/projects?limit=100 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:31 [INFO]: ::1 - - [14/Oct/2025:08:31:31 +0000] "GET /api/tasks?limit=100 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:31 [INFO]: ::1 - - [14/Oct/2025:08:31:31 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:32 [INFO]: ::1 - - [14/Oct/2025:08:31:32 +0000] "GET /api/projects?limit=100 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:01:32 [INFO]: ::1 - - [14/Oct/2025:08:31:32 +0000] "GET /api/analytics/dashboard HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+{
+  "service": "task-management-api"
+}
+2025-10-14 14:02:11 [INFO]: Connected to MongoDB: mongodb+srv://siddharth123:test123@metaupspacetask.rrub2ox.mongodb.net/?retryWrites=true&w=majority&appName=MetaUpSpaceTask
+{
+  "service": "task-management-api"
+}

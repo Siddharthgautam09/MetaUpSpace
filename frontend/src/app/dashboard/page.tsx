@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { DashboardAnalytics } from "@/types";
+import { DashboardAnalytics, Project, Task, User } from "@/types";
 import apiClient from "@/lib/api";
 import {
   formatDate,
@@ -17,6 +17,8 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,18 +28,41 @@ export default function Dashboard() {
     }
 
     if (user) {
-      loadAnalytics();
+      loadDashboardData();
     }
   }, [user, authLoading, router]);
 
-  const loadAnalytics = async () => {
+  const loadDashboardData = async () => {
     try {
-      const response = await apiClient.getDashboardAnalytics();
-      if (response.success && response.data) {
-        setAnalytics(response.data);
+      setLoading(true);
+      // Load analytics, projects, and tasks in parallel
+      const [analyticsRes, projectsRes, tasksRes] = await Promise.all([
+        apiClient.getDashboardAnalytics(),
+        apiClient.getProjects({ limit: 100 }),
+        apiClient.getTasks({ limit: 100 }),
+      ]);
+
+      if (analyticsRes.success && analyticsRes.data) {
+        setAnalytics(analyticsRes.data);
+      }
+      
+      // Ensure we always set arrays to avoid runtime errors if API returns unexpected shapes
+      if (projectsRes && (projectsRes as any).data) {
+        // support both shapes: { data: { items: [...] } } and { items: [...] }
+        const items = (projectsRes as any).data?.items ?? (projectsRes as any).items ?? [];
+        setProjects(Array.isArray(items) ? items : []);
+      } else {
+        setProjects([]);
+      }
+
+      if (tasksRes && (tasksRes as any).data) {
+        const items = (tasksRes as any).data?.items ?? (tasksRes as any).items ?? [];
+        setTasks(Array.isArray(items) ? items : []);
+      } else {
+        setTasks([]);
       }
     } catch (error) {
-      console.error("Failed to load analytics:", error);
+      console.error("Failed to load dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -57,9 +82,23 @@ export default function Dashboard() {
     return null;
   }
 
+  // Helper function to get user name
+  const getUserName = (userObj: User | string | undefined) => {
+    if (!userObj) return "Unassigned";
+    if (typeof userObj === "string") return "Unknown";
+    return `${userObj.firstName} ${userObj.lastName}`;
+  };
+
+  // Helper function to get project title
+  const getProjectTitle = (projectObj: any) => {
+    if (!projectObj) return "Unknown Project";
+    if (typeof projectObj === "string") return projectObj;
+    return projectObj.title;
+  };
+
   return (
     <AppLayout>
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 min-h-screen">
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
@@ -148,6 +187,9 @@ export default function Dashboard() {
                       <p className="text-3xl font-bold text-gray-900">
                         {analytics.overview.completedTasks}
                       </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {analytics.overview.completionRate.toFixed(1)}% completion rate
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                       <svg
@@ -196,8 +238,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Charts Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Analytics Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 {/* Task Status Chart */}
                 <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -209,7 +251,7 @@ export default function Dashboard() {
                         key={stat._id}
                         className="flex items-center justify-between"
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-1">
                           <span
                             className={`inline-block w-3 h-3 rounded-full mr-3 ${
                               getStatusColor(stat._id).split(" ")[2]
@@ -238,7 +280,7 @@ export default function Dashboard() {
                         key={stat._id}
                         className="flex items-center justify-between"
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-1">
                           <span
                             className={`inline-block w-3 h-3 rounded-full mr-3 ${
                               getPriorityColor(stat._id).split(" ")[2]
@@ -255,49 +297,160 @@ export default function Dashboard() {
                     ))}
                   </div>
                 </div>
+
+                {/* Project Status */}
+                <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Projects by Status
+                  </h3>
+                  <div className="space-y-3">
+                    {analytics.projectStats.map((stat) => (
+                      <div
+                        key={stat._id}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center flex-1">
+                          <span
+                            className={`inline-block w-3 h-3 rounded-full mr-3 ${
+                              getStatusColor(stat._id).split(" ")[2]
+                            }`}
+                          ></span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {enumToDisplayText(stat._id)}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-900">
+                          {stat.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
+              {/* Team Workload (for admins and managers) */}
+              {analytics.teamWorkload && analytics.teamWorkload.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Team Workload
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Team Member
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total Tasks
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            In Progress
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Completed
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Overdue
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Completion Rate
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {analytics.teamWorkload.map((member) => (
+                          <tr key={member.userId}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {member.userName}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {member.userEmail}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                              {member.totalTasks}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-blue-600">
+                              {member.inProgressTasks}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
+                              {member.completedTasks}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
+                              {member.overdueTasks}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <span className={`text-sm font-medium ${
+                                member.completionRate >= 80 ? 'text-green-600' :
+                                member.completionRate >= 50 ? 'text-yellow-600' :
+                                'text-red-600'
+                              }`}>
+                                {member.completionRate.toFixed(1)}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               {/* Recent Activity */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">
                     Recent Activity
                   </h3>
                 </div>
                 <div className="p-6">
-                  {analytics.recentActivity.length > 0 ? (
+                  {analytics.recentActivity && analytics.recentActivity.length > 0 ? (
                     <div className="space-y-4">
-                      {analytics.recentActivity.slice(0, 5).map((task) => (
+                      {analytics.recentActivity.slice(0, 10).map((task) => (
                         <div
                           key={task._id}
-                          className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
+                          className="flex items-start justify-between py-3 border-b border-gray-100 last:border-b-0"
                         >
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
                               {task.title}
                             </p>
-                            <p className="text-xs text-gray-600">
-                              {typeof task.projectId === "object"
-                                ? task.projectId.title
-                                : "Unknown Project"}
-                            </p>
+                            <div className="flex items-center mt-1 space-x-2">
+                              <p className="text-xs text-gray-600">
+                                Project: {getProjectTitle(task.projectId)}
+                              </p>
+                              {task.assignedTo && (
+                                <>
+                                  <span className="text-gray-400">•</span>
+                                  <p className="text-xs text-gray-600">
+                                    Assigned to: {getUserName(task.assignedTo as any)}
+                                  </p>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2 ml-4">
                             <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                              className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getStatusColor(
                                 task.status
                               )}`}
                             >
                               {enumToDisplayText(task.status)}
                             </span>
                             <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(
+                              className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getPriorityColor(
                                 task.priority
                               )}`}
                             >
                               {enumToDisplayText(task.priority)}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 whitespace-nowrap">
                               {formatDate(task.updatedAt)}
                             </span>
                           </div>
@@ -313,6 +466,179 @@ export default function Dashboard() {
               </div>
             </>
           )}
+
+          {/* All Projects Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">
+                All Projects
+              </h3>
+              <span className="text-sm text-gray-500">
+                {projects.length} total
+              </span>
+            </div>
+            <div className="p-6">
+              {projects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projects.map((project) => (
+                    <div
+                      key={project._id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => router.push(`/projects` as any)}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
+                          {project.title}
+                        </h4>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(
+                            project.priority
+                          )}`}
+                        >
+                          {enumToDisplayText(project.priority)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 line-clamp-2 mb-3">
+                        {project.description}
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Status:</span>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                              project.status
+                            )}`}
+                          >
+                            {enumToDisplayText(project.status)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Manager:</span>
+                          <span className="text-xs text-gray-900">
+                            {getUserName(project.managerId as any)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Team:</span>
+                          <span className="text-xs text-gray-900">
+                            {Array.isArray(project.teamMembers)
+                              ? project.teamMembers.length
+                              : 0}{" "}
+                            members
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Deadline:</span>
+                          <span className="text-xs text-gray-900">
+                            {formatDate(project.deadline)}
+                          </span>
+                        </div>
+                        {project.budget && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Budget:</span>
+                            <span className="text-xs text-gray-900">
+                              ${project.budget.toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600 text-center py-8">
+                  No projects found
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* All Tasks Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">
+                All Tasks
+              </h3>
+              <span className="text-sm text-gray-500">
+                {tasks.length} total
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              {tasks.length > 0 ? (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Task
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Project
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Assigned To
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Priority
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Due Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {tasks.map((task) => (
+                      <tr
+                        key={task._id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => router.push(`/tasks` as any)}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {task.title}
+                          </div>
+                          <div className="text-xs text-gray-500 line-clamp-1">
+                            {task.description}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {getProjectTitle(task.projectId)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {getUserName(task.assignedTo as any)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                              task.status
+                            )}`}
+                          >
+                            {enumToDisplayText(task.status)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(
+                              task.priority
+                            )}`}
+                          >
+                            {enumToDisplayText(task.priority)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {formatDate(task.dueDate)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-600 text-center py-8">No tasks found</p>
+              )}
+            </div>
+          </div>
         </main>
       </div>
     </AppLayout>

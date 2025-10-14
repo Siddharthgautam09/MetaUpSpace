@@ -55,12 +55,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       icon: CheckSquare,
       current: pathname === '/tasks',
     },
-    {
-      name: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
-      current: pathname === '/analytics',
-    },
   ];
 
   if (!user) {
