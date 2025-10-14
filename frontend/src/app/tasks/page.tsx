@@ -31,6 +31,27 @@ import {
 import AppLayout from "@/components/AppLayout";
 
 export default function TasksPage() {
+  // Modal logic for details and edit
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const openDetailsModal = (task: Task) => {
+    setSelectedTask(task);
+    setShowDetailsModal(true);
+  };
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedTask(null);
+  };
+  const openEditModal = (task: Task) => {
+    setSelectedTask(task);
+    setShowEditModal(true);
+  };
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedTask(null);
+  };
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -487,6 +508,8 @@ export default function TasksPage() {
               setShowCreateModal={setShowCreateModal}
               canEditTask={canEditTask}
               canDeleteTask={canDeleteTask}
+              openDetailsModal={openDetailsModal}
+              openEditModal={openEditModal}
             />
           ) : (
             <KanbanView
@@ -509,6 +532,27 @@ export default function TasksPage() {
               projects={projects}
             />
           )}
+
+          {/* Details Modal */}
+          {showDetailsModal && selectedTask && (
+            <TaskDetailsModal
+              task={selectedTask}
+              onClose={closeDetailsModal}
+            />
+          )}
+
+          {/* Edit Modal */}
+          {showEditModal && selectedTask && (
+            <EditTaskModal
+              task={selectedTask}
+              onClose={closeEditModal}
+              onSuccess={() => {
+                closeEditModal();
+                loadTasks();
+              }}
+              projects={projects}
+            />
+          )}
         </main>
       </div>
     </AppLayout>
@@ -525,6 +569,8 @@ function TaskListView({
   setShowCreateModal,
   canEditTask,
   canDeleteTask,
+  openDetailsModal,
+  openEditModal,
 }: any) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -659,16 +705,31 @@ function TaskListView({
               {/* Actions */}
                 <div className="col-span-1 text-right">
                   <div className="flex items-center justify-end gap-1">
+                    {/* Details Button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/tasks/${task._id}`);
+                        openDetailsModal(task);
                       }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                      title="Edit"
+                      className="px-2 py-1 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-all"
+                      title="View Details"
                     >
-                      <Edit className="w-4 h-4" />
+                      Details
                     </button>
+                    {/* Edit Button */}
+                    {canEditTask(task) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(task);
+                        }}
+                        className="px-2 py-1 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
+                        title="Edit Task"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {/* Delete Button */}
                     {canDeleteTask(task) && (
                       <button
                         onClick={(e) => {
@@ -950,6 +1011,258 @@ function CreateTaskModal({ onClose, onSuccess, projects }: any) {
                   <Plus className="w-4 h-4" />
                   Create Task
                 </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Modal to view task details
+function TaskDetailsModal({ task, onClose }: { task: Task; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Task Details</h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{task.title}</h3>
+            {task.description && (
+              <p className="text-gray-600 text-base mb-2 font-medium">{task.description}</p>
+            )}
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Due Date:</span>
+              <span className="text-gray-900 font-medium">{formatDate(task.dueDate)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Priority:</span>
+              <span className="text-gray-900 font-medium">{enumToDisplayText(task.priority)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Status:</span>
+              <span className="text-gray-900 font-medium">{enumToDisplayText(task.status)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Project:</span>
+              <span className="text-gray-900 font-medium">
+                {typeof task.projectId === "object" ? task.projectId.title : task.projectId}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Assigned To:</span>
+              <span className="text-gray-900 font-medium">
+                {typeof task.assignedTo === "object" 
+                  ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}` 
+                  : task.assignedTo || "Unassigned"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Created By:</span>
+              <span className="text-gray-900 font-medium">
+                {typeof task.createdBy === "object" 
+                  ? `${task.createdBy.firstName} ${task.createdBy.lastName}` 
+                  : task.createdBy || "Unknown"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Created:</span>
+              <span className="text-gray-900 font-medium">{formatDate(task.createdAt)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-700">Updated:</span>
+              <span className="text-gray-900 font-medium">{formatDate(task.updatedAt)}</span>
+            </div>
+            {task.tags && task.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-2">
+                <span className="font-semibold text-gray-700">Tags:</span>
+                {task.tags.map((tag, idx) => (
+                  <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded ml-2">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal to edit task details
+function EditTaskModal({ 
+  task, 
+  onClose, 
+  onSuccess, 
+  projects 
+}: { 
+  task: Task; 
+  onClose: () => void; 
+  onSuccess: () => void; 
+  projects: Project[] 
+}) {
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description || "");
+  const [projectId, setProjectId] = useState(
+    typeof task.projectId === "object" ? task.projectId._id : task.projectId || ""
+  );
+  const [priority, setPriority] = useState(task.priority);
+  const [status, setStatus] = useState(task.status);
+  const [dueDate, setDueDate] = useState(
+    task.dueDate ? task.dueDate.slice(0, 10) : ""
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !dueDate) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await apiClient.updateTask(task._id, {
+        title,
+        description,
+        projectId,
+        priority,
+        status,
+        dueDate,
+      });
+      toast.success("Task updated successfully");
+      onSuccess();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update task");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Edit Task</h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Task Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-black"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none text-black"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Project</label>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white text-black"
+              >
+                {(projects || []).map((p: Project) => (
+                  <option key={p._id} value={p._id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Due Date <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-black"
+                required
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as TaskPriority)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white text-black"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white text-black"
+              >
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">In Review</option>
+                <option value="testing">Testing</option>
+                <option value="completed">Completed</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium text-sm shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </>
+              ) : (
+                <>Save Changes</>
               )}
             </button>
           </div>
