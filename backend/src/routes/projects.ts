@@ -22,12 +22,12 @@ const router = Router();
 /**
  * @route   POST /api/projects
  * @desc    Create a new project
- * @access  Private (Admin, Manager)
+ * @access  Private (Admin)
  */
 router.post(
   '/',
   authenticate,
-  authorize(UserRole.ADMIN, UserRole.MANAGER),
+  authorize(UserRole.ADMIN),
   validateProjectCreation,
   handleValidationErrors,
   createProject

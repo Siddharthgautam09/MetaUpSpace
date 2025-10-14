@@ -1,7 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 export declare enum UserRole {
     ADMIN = "admin",
-    MANAGER = "manager",
     TEAM_MEMBER = "team_member"
 }
 export interface IUser extends Document {

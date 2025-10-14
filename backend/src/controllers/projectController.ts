@@ -44,10 +44,10 @@ export const createProject = async (req: AuthenticatedRequest, res: Response): P
 
     // Verify manager exists and has appropriate role
     const manager = await User.findById(managerId);
-    if (!manager || (manager.role !== UserRole.MANAGER && manager.role !== UserRole.ADMIN)) {
+    if (!manager || manager.role !== UserRole.ADMIN) {
       res.status(400).json({
         success: false,
-        message: 'Invalid manager ID or user is not a manager',
+        message: 'Invalid manager ID or user is not an admin',
       });
       return;
     }
@@ -254,7 +254,7 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response): P
 
     // Check permissions
     const canUpdate = user.role === UserRole.ADMIN ||
-                     (user.role === UserRole.MANAGER && project.managerId.toString() === user._id.toString());
+                     project.managerId.toString() === user._id.toString();
 
     if (!canUpdate) {
       res.status(403).json({
@@ -279,10 +279,10 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response): P
     // Verify new manager if managerId is being updated
     if (updates.managerId) {
       const manager = await User.findById(updates.managerId);
-      if (!manager || (manager.role !== UserRole.MANAGER && manager.role !== UserRole.ADMIN)) {
+      if (!manager || manager.role !== UserRole.ADMIN) {
         res.status(400).json({
           success: false,
-          message: 'Invalid manager ID or user is not a manager',
+          message: 'Invalid manager ID or user is not an admin',
         });
         return;
       }
@@ -361,7 +361,7 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response): P
 
     // Only admins and project managers can delete projects
     const canDelete = user.role === UserRole.ADMIN ||
-                     (user.role === UserRole.MANAGER && project.managerId.toString() === user._id.toString());
+                     project.managerId.toString() === user._id.toString();
 
     if (!canDelete) {
       res.status(403).json({

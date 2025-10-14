@@ -38,13 +38,6 @@ export const getDashboardAnalytics = async (req: AuthenticatedRequest, res: Resp
           { createdBy: user._id }
         ]
       };
-    } else if (user.role === UserRole.MANAGER) {
-      // Managers see projects they manage and tasks in those projects
-      const managerProjects = await Project.find({ managerId: user._id }).select('_id');
-      const projectIds = managerProjects.map(p => p._id);
-      
-      projectFilter = { managerId: user._id };
-      taskFilter = { projectId: { $in: projectIds } };
     }
     // Admins see everything (no filter)
 
@@ -84,12 +77,10 @@ export const getDashboardAnalytics = async (req: AuthenticatedRequest, res: Resp
       }
     ]);
 
-    // Get team member workload (for managers and admins)
+    // Get team member workload (for admins)
     let teamWorkload = [];
     if (user.role !== UserRole.TEAM_MEMBER) {
-      const workloadFilter = user.role === UserRole.MANAGER ? 
-        { projectId: { $in: await Project.find(projectFilter).select('_id') } } : 
-        {};
+      const workloadFilter = {};
 
       teamWorkload = await Task.aggregate([
         { $match: { ...workloadFilter, assignedTo: { $exists: true } } },
@@ -351,13 +342,8 @@ export const getTeamAnalytics = async (req: AuthenticatedRequest, res: Response)
 
     // Build project filter based on user role
     let projectIds: any[] = [];
-    if (user.role === UserRole.MANAGER) {
-      const managerProjects = await Project.find({ managerId: user._id }).select('_id');
-      projectIds = managerProjects.map(p => p._id);
-    } else {
-      const allProjects = await Project.find({}).select('_id');
-      projectIds = allProjects.map(p => p._id);
-    }
+    const allProjects = await Project.find({}).select('_id');
+    projectIds = allProjects.map(p => p._id);
 
     // Team member performance
     const teamPerformance = await Task.aggregate([

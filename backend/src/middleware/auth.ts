@@ -171,8 +171,8 @@ export const checkResourceOwnership = (resourceUserField: string = 'userId') => 
       return;
     }
 
-    // Admins and Managers can access any resource
-    if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.MANAGER) {
+    // Admins can access any resource
+    if (req.user.role === UserRole.ADMIN) {
       next();
       return;
     }

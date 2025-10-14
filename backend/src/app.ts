@@ -222,6 +222,13 @@ class App {
         },
       });
 
+      // Log to console as well for debugging
+      console.error('=== UNCAUGHT EXCEPTION DETAILS ===');
+      console.error('Message:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('Name:', error.name);
+      console.error('===================================');
+
       // Graceful shutdown
       process.exit(1);
     });

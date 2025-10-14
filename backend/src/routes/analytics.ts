@@ -26,12 +26,12 @@ router.get('/projects', authenticate, getProjectAnalytics);
 /**
  * @route   GET /api/analytics/team
  * @desc    Get team performance analytics
- * @access  Private (Manager, Admin)
+ * @access  Private (Admin)
  */
 router.get(
   '/team',
   authenticate,
-  authorize(UserRole.MANAGER, UserRole.ADMIN),
+  authorize(UserRole.ADMIN),
   getTeamAnalytics
 );
 
