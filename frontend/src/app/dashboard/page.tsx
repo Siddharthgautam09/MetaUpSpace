@@ -35,12 +35,18 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      console.log("Loading dashboard data...");
+      
       // Load analytics, projects, and tasks in parallel
       const [analyticsRes, projectsRes, tasksRes] = await Promise.all([
         apiClient.getDashboardAnalytics(),
         apiClient.getProjects({ limit: 100 }),
         apiClient.getTasks({ limit: 100 }),
       ]);
+
+      console.log("Analytics response:", analyticsRes);
+      console.log("Projects response:", projectsRes);
+      console.log("Tasks response:", tasksRes);
 
       if (analyticsRes.success && analyticsRes.data) {
         setAnalytics(analyticsRes.data);
@@ -49,14 +55,16 @@ export default function Dashboard() {
       // Ensure we always set arrays to avoid runtime errors if API returns unexpected shapes
       if (projectsRes && (projectsRes as any).data) {
         // support both shapes: { data: { items: [...] } } and { items: [...] }
-        const items = (projectsRes as any).data?.items ?? (projectsRes as any).items ?? [];
+        const items = (projectsRes as any).data?.projects ?? (projectsRes as any).data?.items ?? (projectsRes as any).items ?? [];
+        console.log("Projects items:", items);
         setProjects(Array.isArray(items) ? items : []);
       } else {
         setProjects([]);
       }
 
       if (tasksRes && (tasksRes as any).data) {
-        const items = (tasksRes as any).data?.items ?? (tasksRes as any).items ?? [];
+        const items = (tasksRes as any).data?.tasks ?? (tasksRes as any).data?.items ?? (tasksRes as any).items ?? [];
+        console.log("Tasks items:", items);
         setTasks(Array.isArray(items) ? items : []);
       } else {
         setTasks([]);
@@ -360,11 +368,6 @@ export default function Dashboard() {
                               {stat.count} ({percentage}%)
                             </span>
                           </div>
-                          {stat.totalBudget && stat.totalBudget > 0 && (
-                            <div className="ml-6 text-xs text-gray-500">
-                              Total Budget: ${stat.totalBudget.toLocaleString()}
-                            </div>
-                          )}
                           {statusProjects.length > 0 && statusProjects.length <= 3 && (
                             <div className="ml-6 mt-1 space-y-1">
                               {statusProjects.slice(0, 3).map(project => (
@@ -454,154 +457,244 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-
-              {/* Recent Activity */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Recent Activity
-                  </h3>
-                </div>
-                <div className="p-6">
-                  {analytics.recentActivity && analytics.recentActivity.length > 0 ? (
-                    <div className="space-y-4">
-                      {analytics.recentActivity.slice(0, 10).map((task) => (
-                        <div
-                          key={task._id}
-                          className="flex items-start justify-between py-3 border-b border-gray-100 last:border-b-0"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {task.title}
-                            </p>
-                            <div className="flex items-center mt-1 space-x-2">
-                              <p className="text-xs text-gray-600">
-                                Project: {getProjectTitle(task.projectId)}
-                              </p>
-                              {task.assignedTo && (
-                                <>
-                                  <span className="text-gray-400">•</span>
-                                  <p className="text-xs text-gray-600">
-                                    Assigned to: {getUserName(task.assignedTo as any)}
-                                  </p>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2 ml-4">
-                            <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getStatusColor(
-                                task.status
-                              )}`}
-                            >
-                              {enumToDisplayText(task.status)}
-                            </span>
-                            <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getPriorityColor(
-                                task.priority
-                              )}`}
-                            >
-                              {enumToDisplayText(task.priority)}
-                            </span>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
-                              {formatDate(task.updatedAt)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-600 text-center py-8">
-                      No recent activity
-                    </p>
-                  )}
-                </div>
-              </div>
             </>
           )}
 
-          {/* All Projects Section */}
+          {/* All Projects Section - Enhanced with Complete Details */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
-                All Projects
-              </h3>
-              <span className="text-sm text-gray-500">
-                {projects.length} total
-              </span>
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    All Projects Created
+                  </h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">
+                    {projects.length} total projects
+                  </span>
+                  <button
+                    onClick={() => {
+                      console.log("Current projects:", projects);
+                      router.push(`/projects` as any);
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    View All →
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="p-6">
               {projects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects.map((project) => (
                     <div
                       key={project._id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      className="border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-all duration-200 cursor-pointer bg-gradient-to-br from-white to-gray-50"
                       onClick={() => router.push(`/projects` as any)}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
-                          {project.title}
-                        </h4>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(
-                            project.priority
-                          )}`}
-                        >
-                          {enumToDisplayText(project.priority)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-3">
-                        {project.description}
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Status:</span>
+                      {/* Header */}
+                      <div className="mb-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-base font-bold text-gray-900 line-clamp-2 flex-1">
+                            {project.title}
+                          </h4>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                            className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                               project.status
                             )}`}
                           >
                             {enumToDisplayText(project.status)}
                           </span>
+                          <span
+                            className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getPriorityColor(
+                              project.priority
+                            )}`}
+                          >
+                            {enumToDisplayText(project.priority)}
+                          </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Manager:</span>
-                          <span className="text-xs text-gray-900">
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-gray-600 line-clamp-3 mb-4 min-h-[3.5rem]">
+                        {project.description}
+                      </p>
+
+                      {/* Details Grid */}
+                      <div className="space-y-3 mb-4">
+                        {/* Manager */}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500 font-medium">👤 Manager:</span>
+                          <span className="text-gray-900 font-semibold">
                             {getUserName(project.managerId as any)}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Team:</span>
-                          <span className="text-xs text-gray-900">
+
+                        {/* Team Size */}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500 font-medium">👥 Team Size:</span>
+                          <span className="text-gray-900 font-semibold">
                             {Array.isArray(project.teamMembers)
                               ? project.teamMembers.length
                               : 0}{" "}
                             members
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Deadline:</span>
-                          <span className="text-xs text-gray-900">
+
+                        {/* Deadline */}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500 font-medium">📅 Deadline:</span>
+                          <span className="text-gray-900 font-semibold">
                             {formatDate(project.deadline)}
                           </span>
                         </div>
-                        {project.budget && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Budget:</span>
-                            <span className="text-xs text-gray-900">
-                              ${project.budget.toLocaleString()}
+
+                        {/* Estimated Hours */}
+                        {project.estimatedHours && project.estimatedHours > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500 font-medium">⏱️ Est. Hours:</span>
+                            <span className="text-gray-900 font-semibold">
+                              {project.estimatedHours}h
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Actual Hours */}
+                        {project.actualHours && project.actualHours > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500 font-medium">⏰ Actual Hours:</span>
+                            <span className="text-gray-900 font-semibold">
+                              {project.actualHours}h
+                              {project.estimatedHours && (
+                                <span className={`ml-1 text-xs ${
+                                  project.actualHours > project.estimatedHours 
+                                    ? 'text-red-600' 
+                                    : 'text-green-600'
+                                }`}>
+                                  ({project.actualHours > project.estimatedHours ? '+' : ''}
+                                  {((project.actualHours / project.estimatedHours - 1) * 100).toFixed(0)}%)
+                                </span>
+                              )}
                             </span>
                           </div>
                         )}
                       </div>
+
+                      {/* Tags */}
+                      {project.tags && project.tags.length > 0 && (
+                        <div className="mb-4">
+                          <div className="flex flex-wrap gap-1.5">
+                            {project.tags.slice(0, 4).map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                            {project.tags.length > 4 && (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium">
+                                +{project.tags.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Footer - Timestamps */}
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                          <div>
+                            <span className="font-medium">Created:</span>
+                            <br />
+                            <span className="text-gray-900">{formatDate(project.createdAt)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-medium">Updated:</span>
+                            <br />
+                            <span className="text-gray-900">{formatDate(project.updatedAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Team Members Preview (if populated) */}
+                      {Array.isArray(project.teamMembers) && project.teamMembers.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="text-xs font-medium text-gray-500 mb-2">Team Members:</div>
+                          <div className="flex -space-x-2">
+                            {project.teamMembers.slice(0, 5).map((member: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm"
+                                title={typeof member === 'object' ? `${member.firstName} ${member.lastName}` : 'Team Member'}
+                              >
+                                {typeof member === 'object' 
+                                  ? `${member.firstName?.[0]}${member.lastName?.[0]}`.toUpperCase()
+                                  : '?'}
+                              </div>
+                            ))}
+                            {project.teamMembers.length > 5 && (
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold border-2 border-white shadow-sm">
+                                +{project.teamMembers.length - 5}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Progress Indicator (if applicable) */}
+                      {project.status === 'in_progress' && project.estimatedHours && project.actualHours && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="flex items-center justify-between text-xs mb-2">
+                            <span className="font-medium text-gray-700">Progress</span>
+                            <span className="font-semibold text-gray-900">
+                              {Math.min(100, Math.round((project.actualHours / project.estimatedHours) * 100))}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${
+                                (project.actualHours / project.estimatedHours) > 1 
+                                  ? 'bg-red-500' 
+                                  : 'bg-blue-500'
+                              }`}
+                              style={{
+                                width: `${Math.min(100, (project.actualHours / project.estimatedHours) * 100)}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-600 text-center py-8">
-                  No projects found
-                </p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No projects found</h4>
+                  <p className="text-gray-600 mb-4">
+                    {user.role === 'admin' || user.role === 'manager' 
+                      ? "Get started by creating your first project or refresh to see existing projects" 
+                      : "No projects have been created yet or you don't have access to view them"
+                    }
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => router.push(`/projects` as any)}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Go to Projects
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>

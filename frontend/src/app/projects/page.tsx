@@ -29,6 +29,7 @@ import {
   Users,
   Calendar,
   DollarSign,
+  X,
 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 
@@ -65,9 +66,13 @@ export default function ProjectsPage() {
       if (priorityFilter) filters.priority = priorityFilter as ProjectPriority;
 
       const response = await apiClient.getProjects(filters);
+      console.log("Projects API response:", response);
       if (response.success && response.data) {
-        setProjects(response.data.items || []);
+        const projectsData = response.data.projects || response.data.items || [];
+        console.log("Projects data:", projectsData);
+        setProjects(projectsData);
       } else {
+        console.log("No projects data in response");
         setProjects([]);
       }
     } catch (error) {
@@ -365,15 +370,6 @@ export default function ProjectsPage() {
                         {project.teamMembers?.length || 0} members
                       </span>
                     </div>
-                    {project.budget && (
-                      <div className="flex items-center justify-between text-gray-600">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4" />
-                          <span>Budget:</span>
-                        </div>
-                        <span className="font-medium text-gray-900">${project.budget.toLocaleString()}</span>
-                      </div>
-                    )}
                     {project.estimatedHours && (
                       <div className="flex items-center justify-between text-gray-600">
                         <span>Estimated Hours:</span>
@@ -443,9 +439,7 @@ export default function ProjectsPage() {
   );
 }
 
-// Placeholder for CreateProjectModal component
-
-
+// Enhanced Create Project Modal
 function CreateProjectModal({
   onClose,
   onSuccess,
@@ -457,8 +451,10 @@ function CreateProjectModal({
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
   const [priority, setPriority] = useState(ProjectPriority.MEDIUM);
+  const [status, setStatus] = useState(ProjectStatus.PLANNING);
+  const [estimatedHours, setEstimatedHours] = useState("");
   const [tags, setTags] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
 
@@ -483,101 +479,188 @@ function CreateProjectModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!title.trim() || !deadline) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
       await apiClient.createProject({
         title,
         description,
         deadline,
         priority,
+        status,
         managerId,
         teamMembers: selectedTeamMembers,
+        estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
         tags: tags.split(",").map(t => t.trim()).filter(Boolean),
       });
       toast.success("Project created successfully");
       onSuccess();
     } catch (err: any) {
+      console.error(err);
       toast.error(err?.response?.data?.message || "Failed to create project");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-lg font-semibold mb-4">Create New Project</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Project Title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-            required
-          />
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-            rows={3}
-          />
-          <input
-            type="date"
-            value={deadline}
-            onChange={e => setDeadline(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-          />
-          <select
-            value={priority}
-            onChange={e => setPriority(e.target.value as ProjectPriority)}
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value={ProjectPriority.LOW}>Low</option>
-            <option value={ProjectPriority.MEDIUM}>Medium</option>
-            <option value={ProjectPriority.HIGH}>High</option>
-            <option value={ProjectPriority.CRITICAL}>Critical</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Tags (comma separated)"
-            value={tags}
-            onChange={e => setTags(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-          />
-          {/* Team members multi-select (exclude admins) */}
-          <label className="block text-sm font-medium">Assign Team Members</label>
-          <select
-            multiple
-            value={selectedTeamMembers}
-            onChange={e => {
-              const options = Array.from(e.target.selectedOptions).map(opt => opt.value);
-              setSelectedTeamMembers(options);
-            }}
-            className="w-full border rounded px-3 py-2 h-32"
-          >
-            {users.filter(u => u.role !== 'admin').map(u => (
-              <option key={u._id} value={u._id}>
-                {u.firstName} {u.lastName} ({u.email})
-              </option>
-            ))}
-          </select>
-          <div className="flex justify-end space-x-3">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Create New Project</h2>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Project Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter project title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <textarea
+              placeholder="Describe the project in detail..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Deadline <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as ProjectPriority)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Initial Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white"
+              >
+                <option value="planning">Planning</option>
+                <option value="in_progress">In Progress</option>
+                <option value="testing">Testing</option>
+                <option value="completed">Completed</option>
+                <option value="on_hold">On Hold</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Tags</label>
+              <input
+                type="text"
+                placeholder="Enter tags separated by commas..."
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Team Members</label>
+            <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+              {users.filter(u => u.role !== 'admin').map(u => (
+                <label key={u._id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    value={u._id}
+                    checked={selectedTeamMembers.includes(u._id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedTeamMembers([...selectedTeamMembers, u._id]);
+                      } else {
+                        setSelectedTeamMembers(selectedTeamMembers.filter(id => id !== u._id));
+                      }
+                    }}
+                    className="text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700">
+                    {u.firstName} {u.lastName} ({u.email})
+                  </span>
+                </label>
+              ))}
+              {users.filter(u => u.role !== 'admin').length === 0 && (
+                <p className="text-sm text-gray-500 p-2">No team members available</p>
+              )}
+            </div>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-              disabled={loading}
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              disabled={loading}
+              disabled={isSubmitting}
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium text-sm shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {loading ? "Creating..." : "Create"}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Create Project
+                </>
+              )}
             </button>
           </div>
         </form>

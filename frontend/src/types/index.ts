@@ -145,7 +145,9 @@ export interface PaginatedResponse<T> {
   success: boolean;
   message: string;
   data: {
-    items: T[];
+    projects?: T[];  // For project API responses
+    items?: T[];     // For other API responses
+    tasks?: T[];     // For task API responses
     pagination: {
       currentPage: number;
       totalPages: number;

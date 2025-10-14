@@ -73,7 +73,10 @@ export default function TasksPage() {
       if (projectFilter) filters.projectId = projectFilter;
 
       const response = await apiClient.getTasks(filters);
-      if (response.success && response.data) setTasks(response.data.items || []);
+      if (response.success && response.data) {
+        const tasksData = response.data.tasks || response.data.items || [];
+        setTasks(tasksData);
+      }
       else setTasks([]);
     } catch (error) {
       console.error(error);
@@ -87,7 +90,10 @@ export default function TasksPage() {
   const loadProjects = async () => {
     try {
       const response = await apiClient.getProjects({});
-      if (response.success && response.data) setProjects(response.data.items || []);
+      if (response.success && response.data) {
+        const projectsData = response.data.projects || response.data.items || [];
+        setProjects(projectsData);
+      }
       else setProjects([]);
     } catch (error) {
       console.error(error);

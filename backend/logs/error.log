@@ -421,3 +421,21 @@
     "name": "Error"
   }
 }
+2025-10-14 14:33:01 [ERROR]: Uncaught Exception:
+{
+  "service": "task-management-api",
+  "error": {
+    "message": "listen EADDRINUSE: address already in use :::5000",
+    "stack": "Error: listen EADDRINUSE: address already in use :::5000\n    at Server.setupListenHandle [as _listen2] (node:net:1939:16)\n    at listenInCluster (node:net:1996:12)\n    at Server.listen (node:net:2101:7)\n    at Function.listen (D:\\Task\\enterprise-task-management\\backend\\node_modules\\express\\lib\\application.js:635:24)\n    at App.start (D:\\Task\\enterprise-task-management\\backend\\src\\app.ts:261:16)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+    "name": "Error"
+  }
+}
+2025-10-14 14:37:18 [ERROR]: Uncaught Exception:
+{
+  "service": "task-management-api",
+  "error": {
+    "message": "listen EADDRINUSE: address already in use :::5000",
+    "stack": "Error: listen EADDRINUSE: address already in use :::5000\n    at Server.setupListenHandle [as _listen2] (node:net:1939:16)\n    at listenInCluster (node:net:1996:12)\n    at Server.listen (node:net:2101:7)\n    at Function.listen (D:\\Task\\enterprise-task-management\\backend\\node_modules\\express\\lib\\application.js:635:24)\n    at App.start (D:\\Task\\enterprise-task-management\\backend\\src\\app.ts:261:16)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+    "name": "Error"
+  }
+}
