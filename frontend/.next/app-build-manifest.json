@@ -21,6 +21,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/projects/page.js"
     ],
+    "/tasks/[taskId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/tasks/[taskId]/page.js"
+    ],
     "/_not-found/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",

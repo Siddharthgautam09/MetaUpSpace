@@ -100,13 +100,7 @@ export default function TasksPage() {
 
   const canDeleteTask = (task: Task) => {
     if (!user) return false;
-    if (user.role === "admin") return true;
-    // Team members can only delete tasks they created
-    if (user.role === "team_member") {
-      const createdById = typeof task.createdBy === 'string' ? task.createdBy : task.createdBy?._id;
-      return createdById === user._id;
-    }
-    return false;
+    return user.role === "admin";
   };
 
   const canViewTask = (task: Task) => {
@@ -481,6 +475,7 @@ export default function TasksPage() {
                 router={router}
                 setShowCreateModal={setShowCreateModal}
                 canEditTask={canEditTask}
+                canDeleteTask={canDeleteTask}
               />
             ) : (
               <KanbanView
@@ -511,7 +506,7 @@ export default function TasksPage() {
 }
 
 // Enhanced Task List View
-function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, router, setShowCreateModal, canEditTask }: any) {
+function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, router, setShowCreateModal, canEditTask, canDeleteTask }: any) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   if (!tasks.length)
@@ -643,16 +638,18 @@ function TaskListView({ tasks, isOverdue, updateTaskStatus, handleDeleteTask, ro
                   >
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTask(task._id);
-                    }}
-                    className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canDeleteTask(task) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTask(task._id);
+                      }}
+                      className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
