@@ -12,7 +12,7 @@
     "dev": "nodemon src/app.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "vercel-build": "echo 'Vercel build complete'"
+    "vercel-build": "tsc"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
