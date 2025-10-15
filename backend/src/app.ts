@@ -78,6 +78,26 @@ class App {
       });
     });
 
+    // Root endpoint - Welcome message
+    this.app.get('/', (req: Request, res: Response) => {
+      res.status(200).json({
+        success: true,
+        message: 'Enterprise Task Management API',
+        version: config.server.apiVersion,
+        status: 'running',
+        endpoints: {
+          health: '/health',
+          apiInfo: '/api',
+          auth: '/api/auth',
+          projects: '/api/projects',
+          tasks: '/api/tasks',
+          analytics: '/api/analytics',
+          docs: '/api/docs',
+        },
+        documentation: '/api/docs',
+      });
+    });
+
     // API info endpoint
     this.app.get('/api', (req: Request, res: Response) => {
       res.status(200).json({
