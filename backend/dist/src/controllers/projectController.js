@@ -50,7 +50,7 @@ const createProject = async (req, res) => {
             deadline,
             priority: priority || Project_1.ProjectPriority.MEDIUM,
             status: status || Project_1.ProjectStatus.PLANNING,
-            managerId,
+            managerId: user._id,
             teamMembers: teamMembers || [],
             budget,
             estimatedHours,
@@ -190,9 +190,23 @@ const updateProject = async (req, res) => {
             });
             return;
         }
-        const canUpdate = user.role === User_1.UserRole.ADMIN ||
-            project.managerId.toString() === user._id.toString();
-        if (!canUpdate) {
+        const isAdmin = user.role === User_1.UserRole.ADMIN;
+        const isProjectManager = project.managerId.toString() === user._id.toString();
+        const isTeamMember = project.teamMembers.some((member) => member.toString() === user._id.toString());
+        const canFullUpdate = isAdmin || isProjectManager;
+        const canUpdateStatus = isAdmin || isProjectManager || isTeamMember;
+        if (isTeamMember && !isAdmin && !isProjectManager) {
+            const requestedUpdates = Object.keys(req.body);
+            const statusOnlyUpdate = requestedUpdates.length === 1 && requestedUpdates[0] === 'status';
+            if (!statusOnlyUpdate) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Team members can only update project status',
+                });
+                return;
+            }
+        }
+        else if (!canFullUpdate) {
             res.status(403).json({
                 success: false,
                 message: 'Insufficient permissions to update this project',

@@ -15,26 +15,9 @@ const logFormat = winston_1.default.format.combine(winston_1.default.format.time
     }
     return logMessage;
 }));
-const logger = winston_1.default.createLogger({
-    level: process.env.LOG_LEVEL || 'info',
-    format: logFormat,
-    defaultMeta: { service: 'task-management-api' },
-    transports: [
-        new winston_1.default.transports.File({
-            filename: 'logs/error.log',
-            level: 'error',
-            maxsize: 5242880,
-            maxFiles: 5,
-        }),
-        new winston_1.default.transports.File({
-            filename: 'logs/combined.log',
-            maxsize: 5242880,
-            maxFiles: 5,
-        }),
-    ],
-});
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston_1.default.transports.Console({
+const transports = [];
+if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+    transports.push(new winston_1.default.transports.Console({
         format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.simple(), winston_1.default.format.printf(({ timestamp, level, message, stack }) => {
             let logMessage = `${timestamp} [${level}]: ${message}`;
             if (stack) {
@@ -44,6 +27,32 @@ if (process.env.NODE_ENV !== 'production') {
         })),
     }));
 }
+else {
+    transports.push(new winston_1.default.transports.File({
+        filename: 'logs/error.log',
+        level: 'error',
+        maxsize: 5242880,
+        maxFiles: 5,
+    }), new winston_1.default.transports.File({
+        filename: 'logs/combined.log',
+        maxsize: 5242880,
+        maxFiles: 5,
+    }), new winston_1.default.transports.Console({
+        format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.simple(), winston_1.default.format.printf(({ timestamp, level, message, stack }) => {
+            let logMessage = `${timestamp} [${level}]: ${message}`;
+            if (stack) {
+                logMessage += `\n${stack}`;
+            }
+            return logMessage;
+        })),
+    }));
+}
+const logger = winston_1.default.createLogger({
+    level: process.env.LOG_LEVEL || 'info',
+    format: logFormat,
+    defaultMeta: { service: 'task-management-api' },
+    transports,
+});
 exports.morganStream = {
     write: (message) => {
         logger.info(message.trim());

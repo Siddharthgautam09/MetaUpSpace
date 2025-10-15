@@ -28,23 +28,40 @@ class Database {
         return Database.instance;
     }
     async connect() {
-        if (this.isConnected) {
+        if (this.isConnected || mongoose_1.default.connection.readyState === 1) {
             logger_1.default.info('Database already connected');
+            return;
+        }
+        if (mongoose_1.default.connection.readyState === 2) {
+            logger_1.default.info('Database connection in progress, waiting...');
+            await new Promise((resolve) => {
+                mongoose_1.default.connection.once('connected', resolve);
+            });
+            this.isConnected = true;
             return;
         }
         try {
             const uri = config_1.default.server.nodeEnv === 'test'
                 ? config_1.default.database.mongodb.testUri
                 : config_1.default.database.mongodb.uri;
-            await mongoose_1.default.connect(uri, config_1.default.database.mongodb.options);
+            const connectionOptions = {
+                ...config_1.default.database.mongodb.options,
+                serverSelectionTimeoutMS: 10000,
+                socketTimeoutMS: 45000,
+                family: 4,
+                maxPoolSize: 10,
+                minPoolSize: 1,
+            };
+            await mongoose_1.default.connect(uri, connectionOptions);
             this.isConnected = true;
-            logger_1.default.info(`Connected to MongoDB: ${uri}`);
+            logger_1.default.info(`Connected to MongoDB: ${uri.substring(0, 30)}...`);
             mongoose_1.default.connection.on('error', this.handleError);
             mongoose_1.default.connection.on('disconnected', this.handleDisconnected);
             mongoose_1.default.connection.on('reconnected', this.handleReconnected);
         }
         catch (error) {
             logger_1.default.error('Failed to connect to MongoDB:', error);
+            this.isConnected = false;
             throw error;
         }
     }

@@ -60,7 +60,7 @@ export const security = {
  * CORS configuration
  */
 export const cors = {
-  origin: true, // Allow all origins for now
+  origin: '*', // Allow all origins
   credentials: true,
 };
 

@@ -44,7 +44,7 @@ exports.security = {
     rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
 };
 exports.cors = {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: '*',
     credentials: true,
 };
 exports.logging = {

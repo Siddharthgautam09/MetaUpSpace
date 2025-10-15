@@ -23,10 +23,12 @@ const getDashboardAnalytics = async (req, res) => {
                     { teamMembers: user._id }
                 ]
             };
+            const assignedProjectIds = (await Project_1.Project.find(projectFilter).select('_id')).map(p => p._id);
             taskFilter = {
                 $or: [
                     { assignedTo: user._id },
-                    { createdBy: user._id }
+                    { createdBy: user._id },
+                    { projectId: { $in: assignedProjectIds } }
                 ]
             };
         }

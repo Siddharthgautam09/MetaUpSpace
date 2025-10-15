@@ -41,7 +41,6 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 const morgan_1 = __importDefault(require("morgan"));
-const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const config_1 = __importDefault(require("../config"));
@@ -72,22 +71,11 @@ class App {
             crossOriginEmbedderPolicy: false,
         }));
         this.app.use((0, cors_1.default)({
-            origin: config_1.default.cors.origin,
-            credentials: config_1.default.cors.credentials,
+            origin: '*',
+            credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
         }));
-        const limiter = (0, express_rate_limit_1.default)({
-            windowMs: config_1.default.security.rateLimitWindowMs,
-            max: config_1.default.security.rateLimitMaxRequests,
-            message: {
-                success: false,
-                message: 'Too many requests from this IP, please try again later.',
-            },
-            standardHeaders: true,
-            legacyHeaders: false,
-        });
-        this.app.use(limiter);
         this.app.use((0, compression_1.default)());
         this.app.use(express_1.default.json({ limit: '10mb' }));
         this.app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
@@ -99,6 +87,24 @@ class App {
                 timestamp: new Date().toISOString(),
                 environment: config_1.default.server.nodeEnv,
                 database: database_1.default.isConnectionReady() ? 'connected' : 'disconnected',
+            });
+        });
+        this.app.get('/', (req, res) => {
+            res.status(200).json({
+                success: true,
+                message: 'Enterprise Task Management API',
+                version: config_1.default.server.apiVersion,
+                status: 'running',
+                endpoints: {
+                    health: '/health',
+                    apiInfo: '/api',
+                    auth: '/api/auth',
+                    projects: '/api/projects',
+                    tasks: '/api/tasks',
+                    analytics: '/api/analytics',
+                    docs: '/api/docs',
+                },
+                documentation: '/api/docs',
             });
         });
         this.app.get('/api', (req, res) => {
@@ -122,6 +128,8 @@ class App {
         this.app.use(`${apiPrefix}/projects`, projects_1.default);
         this.app.use(`${apiPrefix}/tasks`, tasks_1.default);
         this.app.use(`${apiPrefix}/analytics`, analytics_1.default);
+        const usersRoutes = require('./routes/users').default;
+        this.app.use(`${apiPrefix}/users`, usersRoutes);
         this.app.use('*', (req, res) => {
             res.status(404).json({
                 success: false,
@@ -252,9 +260,9 @@ class App {
         }
     }
 }
-const app = new App();
-if (require.main === module) {
-    app.start();
+const appInstance = new App();
+if (process.env.NODE_ENV !== 'production' && require.main === module) {
+    appInstance.start();
 }
-exports.default = app.app;
+exports.default = appInstance.app;
 //# sourceMappingURL=app.js.map

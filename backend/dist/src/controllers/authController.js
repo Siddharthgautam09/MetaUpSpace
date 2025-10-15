@@ -55,6 +55,7 @@ const register = async (req, res) => {
         });
     }
     catch (error) {
+        console.error('Registration error:', error);
         if (error.code === 11000) {
             res.status(409).json({
                 success: false,
@@ -71,8 +72,9 @@ const register = async (req, res) => {
         else {
             res.status(500).json({
                 success: false,
-                message: 'Registration failed',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+                message: 'Registration failed - A server error has occurred',
+                error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
             });
         }
     }

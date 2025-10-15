@@ -25,8 +25,19 @@ class Database {
    * Connect to MongoDB
    */
   public async connect(): Promise<void> {
-    if (this.isConnected) {
+    // Check if already connected or connecting
+    if (this.isConnected || mongoose.connection.readyState === 1) {
       logger.info('Database already connected');
+      return;
+    }
+
+    // If currently connecting, wait for it
+    if (mongoose.connection.readyState === 2) {
+      logger.info('Database connection in progress, waiting...');
+      await new Promise((resolve) => {
+        mongoose.connection.once('connected', resolve);
+      });
+      this.isConnected = true;
       return;
     }
 
@@ -35,10 +46,20 @@ class Database {
         ? config.database.mongodb.testUri 
         : config.database.mongodb.uri;
 
-      await mongoose.connect(uri, config.database.mongodb.options);
+      // Enhanced options for serverless
+      const connectionOptions = {
+        ...config.database.mongodb.options,
+        serverSelectionTimeoutMS: 10000, // Increased timeout for serverless
+        socketTimeoutMS: 45000,
+        family: 4, // Use IPv4, skip trying IPv6
+        maxPoolSize: 10,
+        minPoolSize: 1,
+      };
+
+      await mongoose.connect(uri, connectionOptions);
 
       this.isConnected = true;
-      logger.info(`Connected to MongoDB: ${uri}`);
+      logger.info(`Connected to MongoDB: ${uri.substring(0, 30)}...`);
 
       // Handle connection events
       mongoose.connection.on('error', this.handleError);
@@ -47,6 +68,7 @@ class Database {
 
     } catch (error) {
       logger.error('Failed to connect to MongoDB:', error);
+      this.isConnected = false;
       throw error;
     }
   }

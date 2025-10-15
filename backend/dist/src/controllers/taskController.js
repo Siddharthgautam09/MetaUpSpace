@@ -24,8 +24,7 @@ const createTask = async (req, res) => {
             return;
         }
         const canCreate = user.role === User_1.UserRole.ADMIN ||
-            project.managerId.toString() === user._id.toString() ||
-            project.teamMembers.some(memberId => memberId.toString() === user._id.toString());
+            project.managerId.toString() === user._id.toString();
         if (!canCreate) {
             res.status(403).json({
                 success: false,
@@ -221,10 +220,12 @@ const updateTask = async (req, res) => {
             return;
         }
         const project = task.projectId;
+        const isTeamMember = Array.isArray(project.teamMembers) && project.teamMembers.some((memberId) => memberId.toString() === user._id.toString());
         const canUpdate = user.role === User_1.UserRole.ADMIN ||
             project.managerId.toString() === user._id.toString() ||
             task.assignedTo?.toString() === user._id.toString() ||
-            task.createdBy.toString() === user._id.toString();
+            task.createdBy.toString() === user._id.toString() ||
+            isTeamMember;
         if (!canUpdate) {
             res.status(403).json({
                 success: false,
