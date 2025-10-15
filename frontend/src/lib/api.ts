@@ -27,8 +27,8 @@ class ApiClient {
   private accessToken: string | null = null;
 
   constructor() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    console.log('🔗 API Base URL:', apiUrl); // Debug log
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    console.log('🔗 API Base URL:', `${apiUrl}/api`); // Debug log
     
     this.client = axios.create({
       baseURL: `${apiUrl}/api`,
