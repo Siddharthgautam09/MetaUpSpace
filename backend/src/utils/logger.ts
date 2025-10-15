@@ -24,12 +24,31 @@ const logFormat = winston.format.combine(
 
 /**
  * Create logger instance
+ * In production (serverless), use console logging only
+ * In development, use file logging
  */
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  defaultMeta: { service: 'task-management-api' },
-  transports: [
+const transports: winston.transport[] = [];
+
+// For serverless environments (Vercel), only use console logging
+if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+  transports.push(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+        winston.format.printf(({ timestamp, level, message, stack }) => {
+          let logMessage = `${timestamp} [${level}]: ${message}`;
+          if (stack) {
+            logMessage += `\n${stack}`;
+          }
+          return logMessage;
+        })
+      ),
+    })
+  );
+} else {
+  // Development: use file logging
+  transports.push(
     // Write all logs with level 'error' and below to error.log
     new winston.transports.File({ 
       filename: 'logs/error.log', 
@@ -43,27 +62,29 @@ const logger = winston.createLogger({
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
-  ],
-});
-
-/**
- * Add console transport in development
- */
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple(),
-      winston.format.printf(({ timestamp, level, message, stack }) => {
-        let logMessage = `${timestamp} [${level}]: ${message}`;
-        if (stack) {
-          logMessage += `\n${stack}`;
-        }
-        return logMessage;
-      })
-    ),
-  }));
+    // Also log to console in development
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+        winston.format.printf(({ timestamp, level, message, stack }) => {
+          let logMessage = `${timestamp} [${level}]: ${message}`;
+          if (stack) {
+            logMessage += `\n${stack}`;
+          }
+          return logMessage;
+        })
+      ),
+    })
+  );
 }
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: logFormat,
+  defaultMeta: { service: 'task-management-api' },
+  transports,
+});
 
 /**
  * Stream interface for Morgan HTTP logger
