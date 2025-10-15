@@ -275,11 +275,12 @@ class App {
 }
 
 // Create and start the application
-const app = new App();
+const appInstance = new App();
 
-// Start server only if this file is run directly
-if (require.main === module) {
-  app.start();
+// Start server only if not in production (local development)
+if (process.env.NODE_ENV !== 'production' && require.main === module) {
+  appInstance.start();
 }
 
-export default app.app;
+// Export for Vercel serverless functions
+export default appInstance.app;
