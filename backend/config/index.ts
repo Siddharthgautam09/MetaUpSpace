@@ -60,9 +60,7 @@ export const security = {
  * CORS configuration
  */
 export const cors = {
-  origin: process.env.NODE_ENV === 'production'
-    ? (process.env.CORS_ORIGIN || '').split(',').map(origin => origin.trim())
-    : process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: true, // Allow all origins for now
   credentials: true,
 };
 
